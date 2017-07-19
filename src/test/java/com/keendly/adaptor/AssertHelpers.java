@@ -37,9 +37,9 @@ public class AssertHelpers {
         assertEquals(published * 1000, entry.getPublished().getTime());
     }
 
-
-    public static void assertFeedCorrect(ExternalFeed feed, String title, String id){
+    public static void assertFeedCorrect(ExternalFeed feed, String title, String id, String category){
         assertEquals(title, feed.getTitle());
         assertEquals(id, feed.getFeedId());
+        assertTrue(feed.getCategories().contains(category));
     }
 }

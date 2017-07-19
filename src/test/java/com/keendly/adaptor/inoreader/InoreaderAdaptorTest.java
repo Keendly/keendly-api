@@ -16,6 +16,7 @@ import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.HttpStatus;
 import org.junit.Ignore;
@@ -634,13 +635,15 @@ public class InoreaderAdaptorTest {
         String ACCESS_TOKEN = "my_token";
         String FEED_ID1 = "feed/http://www.theanimationblog.com/feed/";
         String FEED_TITLE1 = "The Animation Blog.com | Est. 2007";
+        String FEED_CATEGORY1 = "awsome category";
         String FEED_ID2 = "feed/http://amanita-design.net/blog/feed/";
         String FEED_TITLE2 = "Amanita Design Blog";
+        String FEED_CATEGORY2 = "other category";
 
         // given
         JSONObject response = new JSONObject();
-        JSONObject feed1 = new Feed().id(FEED_ID1).title(FEED_TITLE1).build();
-        JSONObject feed2 = new Feed().id(FEED_ID2).title(FEED_TITLE2).build();
+        JSONObject feed1 = feed(FEED_ID1, FEED_TITLE1, FEED_CATEGORY1);
+        JSONObject feed2 = feed(FEED_ID2, FEED_TITLE2, FEED_CATEGORY2);
         response.put("subscriptions", asList(feed1, feed2));
 
         givenThat(get(urlEqualTo("/subscription/list"))
@@ -651,24 +654,23 @@ public class InoreaderAdaptorTest {
 
         // then
         assertEquals(2, feeds.size());
-        assertFeedCorrect(feeds.get(0), FEED_TITLE1, FEED_ID1);
-        assertFeedCorrect(feeds.get(1), FEED_TITLE2, FEED_ID2);
+        assertFeedCorrect(feeds.get(0), FEED_TITLE1, FEED_ID1, FEED_CATEGORY1);
+        assertFeedCorrect(feeds.get(1), FEED_TITLE2, FEED_ID2, FEED_CATEGORY2);
 
         verify(getRequestedFor(urlPathEqualTo("/subscription/list"))
             .withHeader("Authorization", equalTo("Bearer " + ACCESS_TOKEN)));
     }
 
-    @Accessors(fluent = true)
-    @Setter
-    private class Feed {
-        String title, id;
-
-        JSONObject build() throws Exception {
-            JSONObject item = new JSONObject();
-            item.put("title", title);
-            item.put("id", id);
-            return item;
-        }
+    private JSONObject feed(String id, String title, String category){
+        JSONObject item = new JSONObject();
+        JSONArray arr = new JSONArray();
+        JSONObject cat = new JSONObject();
+        cat.put("label", category);
+        arr.add(cat);
+        item.put("title", title);
+        item.put("id", id);
+        item.put("categories", arr);
+        return item;
     }
 
     @Test

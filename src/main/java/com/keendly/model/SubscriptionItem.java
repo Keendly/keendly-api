@@ -5,20 +5,19 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.util.Date;
-import java.util.List;
 
-@Builder
 @Value
+@Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class Delivery {
+public class SubscriptionItem {
 
     private Long id;
-    private List<DeliveryItem> items;
-    private Date deliveryDate;
-    private String error;
-    private Boolean manual;
-    private Subscription subscription;
     private Date created;
     private Date lastModified;
-    private String timezone;
+    private String feedId;
+    private String title;
+    private Boolean includeImages;
+    private Boolean fullArticle;
+    private Boolean markAsRead;
+    private Subscription subscription;
 }

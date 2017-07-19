@@ -48,6 +48,12 @@ public class GoogleReaderMapper {
             ExternalFeed externalSubscription = new ExternalFeed();
             externalSubscription.setFeedId(sub.get("id").asText());
             externalSubscription.setTitle(sub.get("title").asText());
+
+            if (sub.get("categories") != null) {
+                List<String> categories = new ArrayList<>();
+                sub.get("categories").forEach(jsonNode -> categories.add(jsonNode.get("label").asText()));
+                externalSubscription.setCategories(categories);
+            }
             externalSubscriptions.add(externalSubscription);
         }
         return externalSubscriptions;

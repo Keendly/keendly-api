@@ -13,7 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -23,8 +22,9 @@ import java.util.Map;
 @Path("/login")
 public class LoginResource {
 
+    private static int ONE_MONTH = 60 * 60 * 24 * 30;
+
     @GET
-    @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response login(
@@ -34,7 +34,7 @@ public class LoginResource {
 
         Map<String, String> ret = new HashMap<String, String>();
 //        ret.put("accessToken", authToken);
-        ret.put("accessToken", generate(123L, 6000));
+        ret.put("accessToken", generate(Long.valueOf(code), 6000)); // TODO for testing
         ret.put("tokeType", "Bearer");
         ret.put("expiresIn", Integer.toString(6000));
 //        ret.put("expiresIn", Integer.toString(expiresIn));
@@ -46,9 +46,12 @@ public class LoginResource {
     private String generate(long userId, int expiresIn) {
         Claims claims = new DefaultClaims();
         claims.put("userId", Long.toString(userId));
-        claims.setExpiration(Date.from(LocalDateTime.now().plusSeconds(expiresIn).
+        claims.setExpiration(Date.from(LocalDateTime.now().plusSeconds(ONE_MONTH).
             atZone(ZoneId.systemDefault()).toInstant()));
 
-        return Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.HS512, AuthorizerHandler.KEY).compact();
+        return Jwts.builder()
+            .setClaims(claims)
+            .signWith(SignatureAlgorithm.HS512, AuthorizerHandler.KEY)
+            .compact();
     }
 }

@@ -33,6 +33,7 @@ public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Ma
             if (token == null){
                 return generatePolicy("-1", "Deny", resource);
             }
+            LOG.info("Received token " + token);
             String userId = getUserId(token);
             return generatePolicy(userId, "Allow", resource);
         } catch (Exception e) {
@@ -49,7 +50,7 @@ public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Ma
         Map<String, String> statementOne = new HashMap();
         statementOne.put("Action", "execute-api:Invoke"); // default action
         statementOne.put("Effect", effect);
-        statementOne.put("Resource", resource);
+        statementOne.put("Resource", "arn:aws:execute-api:*:*:*");
         policyDocument.put("Statement", new Object[] {statementOne});
         authResponse.put("policyDocument", policyDocument);
 //        if ("Allow".equals(effect)) {
@@ -63,6 +64,8 @@ public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Ma
     }
 
     public String getUserId(String token) {
+        LOG.info("signing key: " + KEY);
+
         Claims claims = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).getBody();
         return claims.get("userId", String.class);
     }

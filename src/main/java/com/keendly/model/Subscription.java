@@ -16,8 +16,9 @@ public class Subscription {
     private String time;
     private String timezone;
     private String frequency;
-    private List<DeliveryItem> feeds;
+    private List<SubscriptionItem> feeds;
     private User user;
     private Date created;
+    private Date lastModified;
     private Boolean active;
 }

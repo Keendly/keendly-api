@@ -1,0 +1,634 @@
+{
+  "activities": [
+    {
+      "category": "follow",
+      "content_id": null,
+      "user_id": 39040,
+      "title": null,
+      "story_hash": null,
+      "is_new": true,
+      "story_feed_id": null,
+      "content": null,
+      "with_user_id": 219352,
+      "feed_id": null,
+      "time_since": "1015 days",
+      "date": "2013-07-15 18:26:17.305000",
+      "with_user": {
+        "username": "cinebot",
+        "website": "http://www.google.com/reader/shared/rita.su",
+        "user_id": 219352,
+        "average_stories_per_month": 111,
+        "following_count": 35,
+        "bio": "gives good links",
+        "feed_address": "http://www.newsblur.com/social/rss/219352/cinebot",
+        "num_subscribers": 54,
+        "feed_title": "cinebot's blurblog",
+        "private": false,
+        "shared_stories_count": 3615,
+        "protected": false,
+        "location": "toronto.",
+        "stories_last_month": 0,
+        "follower_count": 54,
+        "large_photo_url": "https://graph.facebook.com/885800607/picture?type=large",
+        "feed_link": "http://cinebot.newsblur.com/",
+        "popular_publishers": [
+          {
+            "story_count": 86,
+            "id": 39,
+            "feed_title": "kottke.org"
+          },
+          {
+            "story_count": 83,
+            "id": 4013,
+            "feed_title": "this isn't happiness."
+          },
+          {
+            "story_count": 56,
+            "id": 1206,
+            "feed_title": "Grub Street New York"
+          },
+          {
+            "story_count": 37,
+            "id": 2872352,
+            "feed_title": "HALFDRY"
+          },
+          {
+            "story_count": 34,
+            "id": 5960625,
+            "feed_title": "Vulture"
+          },
+          {
+            "story_count": 25,
+            "id": 19954,
+            "feed_title": "designboom | architecture & design magazine"
+          },
+          {
+            "story_count": 22,
+            "id": 799,
+            "feed_title": "The Awl"
+          },
+          {
+            "story_count": 20,
+            "id": 758764,
+            "feed_title": "Sick Sad World"
+          },
+          {
+            "story_count": 12,
+            "id": 4819893,
+            "feed_title": "skiptheyouth"
+          },
+          {
+            "story_count": 11,
+            "id": 876305,
+            "feed_title": "Mad Men Screenshots with Things Drawn On Them"
+          },
+          {
+            "story_count": 10,
+            "id": 526,
+            "feed_title": "Boing Boing"
+          },
+          {
+            "story_count": 8,
+            "id": 3164150,
+            "feed_title": "Paradisiac"
+          },
+          {
+            "story_count": 7,
+            "id": 146,
+            "feed_title": "FlowingData"
+          },
+          {
+            "story_count": 7,
+            "id": 492052,
+            "feed_title": "BlackBook"
+          }
+        ],
+        "id": "social:219352",
+        "photo_url": "https://graph.facebook.com/885800607/picture"
+      },
+      "photo_url": "https://graph.facebook.com/885800607/picture"
+    },
+    {
+      "category": "follow",
+      "content_id": null,
+      "user_id": 39040,
+      "title": null,
+      "story_hash": null,
+      "is_new": false,
+      "story_feed_id": null,
+      "content": null,
+      "with_user_id": 33727,
+      "feed_id": null,
+      "time_since": "1301 days",
+      "date": "2012-10-01 23:09:27.095000",
+      "with_user": {
+        "username": "secretsquirrel",
+        "website": "http://www.everythinginthesky.com",
+        "user_id": 33727,
+        "average_stories_per_month": 0,
+        "following_count": 18,
+        "bio": "Ruthless raconteur. Proud member of the Little Lebowski Urban Achievers.",
+        "feed_address": "http://www.newsblur.com/social/rss/33727/secretsquirrel",
+        "num_subscribers": 47,
+        "feed_title": "lol internets",
+        "private": null,
+        "shared_stories_count": 0,
+        "protected": null,
+        "location": "Toronto, Canada",
+        "stories_last_month": 0,
+        "follower_count": 47,
+        "large_photo_url": "https://www.gravatar.com/avatar/e03239b46891d86412ca17c5c168c601",
+        "feed_link": "http://secretsquirrel.newsblur.com/",
+        "popular_publishers": [
+          {
+            "story_count": 9,
+            "id": 734372,
+            "feed_title": "everything in the sky"
+          },
+          {
+            "story_count": 6,
+            "id": 848432,
+            "feed_title": "The Verge -  All Posts"
+          },
+          {
+            "story_count": 6,
+            "id": 463302,
+            "feed_title": "swissmiss"
+          },
+          {
+            "story_count": 4,
+            "id": 3,
+            "feed_title": "Daring Fireball"
+          },
+          {
+            "story_count": 4,
+            "id": 39,
+            "feed_title": "kottke.org"
+          },
+          {
+            "story_count": 4,
+            "id": 161745,
+            "feed_title": "riot right clit click"
+          },
+          {
+            "story_count": 3,
+            "id": 4214,
+            "feed_title": "Shorpy Historical Photo Archive - Vintage Fine Art Prints"
+          },
+          {
+            "story_count": 2,
+            "id": 1029,
+            "feed_title": "Cool Hunting"
+          },
+          {
+            "story_count": 2,
+            "id": 151317,
+            "feed_title": "A Continuous Lean."
+          },
+          {
+            "story_count": 2,
+            "id": 169,
+            "feed_title": "xkcd.com"
+          },
+          {
+            "story_count": 2,
+            "id": 2881,
+            "feed_title": "It's Nice That"
+          },
+          {
+            "story_count": 2,
+            "id": 6100,
+            "feed_title": "Warren Ellis"
+          },
+          {
+            "story_count": 1,
+            "id": 294411,
+            "feed_title": "Jamie McKelvie"
+          },
+          {
+            "story_count": 1,
+            "id": 3983,
+            "feed_title": "The Bygone Bureau"
+          },
+          {
+            "story_count": 1,
+            "id": 1427,
+            "feed_title": "BLDGBLOG"
+          }
+        ],
+        "id": "social:33727",
+        "photo_url": "https://www.gravatar.com/avatar/e03239b46891d86412ca17c5c168c601"
+      },
+      "photo_url": "https://www.gravatar.com/avatar/e03239b46891d86412ca17c5c168c601"
+    },
+    {
+      "category": "follow",
+      "content_id": null,
+      "user_id": 39040,
+      "title": null,
+      "story_hash": null,
+      "is_new": false,
+      "story_feed_id": null,
+      "content": null,
+      "with_user_id": 23766,
+      "feed_id": null,
+      "time_since": "1301 days",
+      "date": "2012-10-01 23:09:23.177000",
+      "with_user": {
+        "username": "Courtney",
+        "website": "http://superopinionated.com",
+        "user_id": 23766,
+        "average_stories_per_month": 398,
+        "following_count": 27,
+        "bio": "Worker-Owner at Feel Train, a creative technology cooperative. Likes Thai food, feminist prose, and angry girl music of the indie rock persuasion.",
+        "feed_address": "http://www.newsblur.com/social/rss/23766/courtney",
+        "num_subscribers": 84,
+        "feed_title": "Courtney Stanton Reads The Entire Internet",
+        "private": false,
+        "shared_stories_count": 18328,
+        "protected": true,
+        "location": "Portland, OR",
+        "stories_last_month": 0,
+        "follower_count": 84,
+        "large_photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png",
+        "feed_link": "http://courtney.newsblur.com/",
+        "popular_publishers": [
+          {
+            "story_count": 476,
+            "id": 5452374,
+            "feed_title": "Super Opinionated"
+          },
+          {
+            "story_count": 3,
+            "id": 4829614,
+            "feed_title": "The Toast » The Toast"
+          },
+          {
+            "story_count": 2,
+            "id": 36801,
+            "feed_title": "Remodelista"
+          },
+          {
+            "story_count": 2,
+            "id": 661974,
+            "feed_title": "Tastefully Offensive on Tumblr"
+          },
+          {
+            "story_count": 2,
+            "id": 3522730,
+            "feed_title": "Feminist Ideals from a Fiesty Feline"
+          },
+          {
+            "story_count": 2,
+            "id": 3980024,
+            "feed_title": "The Sweethome"
+          },
+          {
+            "story_count": 1,
+            "id": 5316802,
+            "feed_title": "Instapaper Daily"
+          },
+          {
+            "story_count": 1,
+            "id": 161412,
+            "feed_title": "Little Green Notebook"
+          },
+          {
+            "story_count": 1,
+            "id": 1436555,
+            "feed_title": "falling awkwardly"
+          },
+          {
+            "story_count": 1,
+            "id": 5620271,
+            "feed_title": "RSS Feed"
+          },
+          {
+            "story_count": 1,
+            "id": 5760593,
+            "feed_title": "The Babe Brigade"
+          },
+          {
+            "story_count": 1,
+            "id": 4551986,
+            "feed_title": "Ars Technica"
+          },
+          {
+            "story_count": 1,
+            "id": 2675412,
+            "feed_title": "Serrandipity"
+          },
+          {
+            "story_count": 1,
+            "id": 1498485,
+            "feed_title": "Engadget RSS Feed"
+          }
+        ],
+        "id": "social:23766",
+        "photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png"
+      },
+      "photo_url": "/media/img/reader/default_profile_photo.png"
+    },
+    {
+      "category": "follow",
+      "content_id": null,
+      "user_id": 39040,
+      "title": null,
+      "story_hash": null,
+      "is_new": false,
+      "story_feed_id": null,
+      "content": null,
+      "with_user_id": 26578,
+      "feed_id": null,
+      "time_since": "1301 days",
+      "date": "2012-10-01 23:09:21.680000",
+      "with_user": {
+        "username": "smadin",
+        "website": "http://finenessandaccuracy.wordpress.com/",
+        "user_id": 26578,
+        "average_stories_per_month": 51,
+        "following_count": 48,
+        "bio": "I'm a political moderate, but that might not mean to me what it means to you.",
+        "feed_address": "http://www.newsblur.com/social/rss/26578/smadin",
+        "num_subscribers": 140,
+        "feed_title": "smadin's blurblog",
+        "private": null,
+        "shared_stories_count": 2537,
+        "protected": null,
+        "location": "Boston",
+        "stories_last_month": 0,
+        "follower_count": 140,
+        "large_photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png",
+        "feed_link": "http://smadin.newsblur.com/",
+        "popular_publishers": [
+          {
+            "story_count": 57,
+            "id": 4551986,
+            "feed_title": "Ars Technica"
+          },
+          {
+            "story_count": 46,
+            "id": 1639199,
+            "feed_title": "William Caxton Fan Club"
+          },
+          {
+            "story_count": 35,
+            "id": 4829614,
+            "feed_title": "The Toast"
+          },
+          {
+            "story_count": 23,
+            "id": 6181663,
+            "feed_title": "Super Opinionated"
+          },
+          {
+            "story_count": 21,
+            "id": 653579,
+            "feed_title": "Lawyers, Guns & Money"
+          },
+          {
+            "story_count": 21,
+            "id": 5333273,
+            "feed_title": "Skunk Bear"
+          },
+          {
+            "story_count": 15,
+            "id": 1626596,
+            "feed_title": "Adafruit Industries – Makers, hackers, artists, designers and engineers!"
+          },
+          {
+            "story_count": 11,
+            "id": 4090312,
+            "feed_title": "People of Color in European Art History"
+          },
+          {
+            "story_count": 10,
+            "id": 452556,
+            "feed_title": "jwz"
+          },
+          {
+            "story_count": 9,
+            "id": 198817,
+            "feed_title": "Blue Mass Group - Front Page"
+          },
+          {
+            "story_count": 8,
+            "id": 33022,
+            "feed_title": "Eschaton"
+          },
+          {
+            "story_count": 6,
+            "id": 6043968,
+            "feed_title": "smitten kitchen"
+          },
+          {
+            "story_count": 6,
+            "id": 75729,
+            "feed_title": "Shakesville"
+          }
+        ],
+        "id": "social:26578",
+        "photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png"
+      },
+      "photo_url": "/media/img/reader/default_profile_photo.png"
+    }
+  ],
+  "followers_everybody": [
+    33727,
+    39285,
+    33143,
+    35059
+  ],
+  "authenticated": false,
+  "following_youknow": [
+    13,
+    219352,
+    26578,
+    32048,
+    33405
+  ],
+  "following_everybody": [],
+  "user_profile": {
+    "website": "",
+    "following_user_ids": [
+      32048,
+      13,
+      33405,
+      26578,
+      219352
+    ],
+    "following_count": 5,
+    "shared_stories_count": 0,
+    "private": true,
+    "large_photo_url": "https://www.gravatar.com/avatar/e3c7a29b7538122f0ee20f8e9cf05f42",
+    "id": "social:39040",
+    "following_youknow": [
+      13,
+      219352,
+      26578,
+      32048,
+      33405
+    ],
+    "feed_address": "http://www.newsblur.com/social/rss/39040/homepage",
+    "followers_everybody": [
+      33727,
+      39285,
+      33143,
+      35059
+    ],
+    "user_id": 39040,
+    "feed_link": "http://homepage.newsblur.com/",
+    "follower_user_ids": [
+      33143,
+      33727,
+      39285,
+      35059
+    ],
+    "location": "",
+    "popular_publishers": [],
+    "follower_count": 4,
+    "username": "homepage",
+    "bio": "",
+    "average_stories_per_month": 0,
+    "following_everybody": [],
+    "feed_title": "homepage's blurblog",
+    "photo_service": "gravatar",
+    "requested_follow": false,
+    "followers_youknow": [],
+    "stories_last_month": 0,
+    "photo_url": "https://www.gravatar.com/avatar/e3c7a29b7538122f0ee20f8e9cf05f42",
+    "num_subscribers": 4,
+    "protected": true
+  },
+  "profiles": {
+    "13": {
+      "username": "samuel",
+      "feed_address": "http://www.newsblur.com/social/rss/13/samuel",
+      "user_id": 13,
+      "feed_link": "http://samuel.newsblur.com/",
+      "num_subscribers": 750,
+      "feed_title": "Samuel Clay's Blurblog",
+      "private": false,
+      "protected": false,
+      "location": "The Haight in San Francisco",
+      "large_photo_url": "https://graph.facebook.com/1052480653/picture?type=large",
+      "id": "social:13",
+      "photo_url": "https://graph.facebook.com/1052480653/picture"
+    },
+    "26578": {
+      "username": "smadin",
+      "feed_address": "http://www.newsblur.com/social/rss/26578/smadin",
+      "user_id": 26578,
+      "feed_link": "http://smadin.newsblur.com/",
+      "num_subscribers": 140,
+      "feed_title": "smadin's blurblog",
+      "private": null,
+      "protected": null,
+      "location": "Boston",
+      "large_photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png",
+      "id": "social:26578",
+      "photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png"
+    },
+    "32048": {
+      "username": "popular",
+      "feed_address": "http://www.newsblur.com/social/rss/32048/popular",
+      "user_id": 32048,
+      "feed_link": "http://popular.newsblur.com/",
+      "num_subscribers": 35366,
+      "feed_title": "The People Have Spoken",
+      "private": false,
+      "protected": false,
+      "location": "",
+      "large_photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/32048/large_profile_1358188630.jpg",
+      "id": "social:32048",
+      "photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/32048/thumbnail_profile_1358188630.jpg"
+    },
+    "33143": {
+      "username": "Andor",
+      "feed_address": "http://www.newsblur.com/social/rss/33143/andor",
+      "user_id": 33143,
+      "feed_link": "http://andor.newsblur.com/",
+      "num_subscribers": 21,
+      "feed_title": "Andor blurred",
+      "private": false,
+      "protected": false,
+      "location": "Buenos Aires",
+      "large_photo_url": "https://graph.facebook.com/100001013537894/picture?type=large",
+      "id": "social:33143",
+      "photo_url": "https://graph.facebook.com/100001013537894/picture"
+    },
+    "33405": {
+      "username": "satadru",
+      "feed_address": "http://www.newsblur.com/social/rss/33405/satadru",
+      "user_id": 33405,
+      "feed_link": "http://satadru.newsblur.com/",
+      "num_subscribers": 138,
+      "feed_title": "satadru's blurblog",
+      "private": false,
+      "protected": false,
+      "location": "New York, NY",
+      "large_photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png",
+      "id": "social:33405",
+      "photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png"
+    },
+    "33727": {
+      "username": "secretsquirrel",
+      "feed_address": "http://www.newsblur.com/social/rss/33727/secretsquirrel",
+      "user_id": 33727,
+      "feed_link": "http://secretsquirrel.newsblur.com/",
+      "num_subscribers": 47,
+      "feed_title": "lol internets",
+      "private": null,
+      "protected": null,
+      "location": "Toronto, Canada",
+      "large_photo_url": "https://www.gravatar.com/avatar/e03239b46891d86412ca17c5c168c601",
+      "id": "social:33727",
+      "photo_url": "https://www.gravatar.com/avatar/e03239b46891d86412ca17c5c168c601"
+    },
+    "35059": {
+      "username": "nelletorres",
+      "feed_address": "http://www.newsblur.com/social/rss/35059/nelletorres",
+      "user_id": 35059,
+      "feed_link": "http://nelletorres.newsblur.com/",
+      "num_subscribers": 3,
+      "feed_title": "nelletorres's blurblog",
+      "private": false,
+      "protected": true,
+      "location": "Ponce, Puerto Rico",
+      "large_photo_url": "https://graph.facebook.com/708178593/picture?type=large",
+      "id": "social:35059",
+      "photo_url": "https://graph.facebook.com/708178593/picture"
+    },
+    "39285": {
+      "username": "gurkancv",
+      "feed_address": "http://www.newsblur.com/social/rss/39285/gurkancv",
+      "user_id": 39285,
+      "feed_link": "http://gurkancv.newsblur.com/",
+      "num_subscribers": 1,
+      "feed_title": "gurkancv's blurblog",
+      "private": null,
+      "protected": null,
+      "location": null,
+      "large_photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png",
+      "id": "social:39285",
+      "photo_url": "https://www.newsblur.com/media/img/reader/default_profile_photo.png"
+    },
+    "219352": {
+      "username": "cinebot",
+      "feed_address": "http://www.newsblur.com/social/rss/219352/cinebot",
+      "user_id": 219352,
+      "feed_link": "http://cinebot.newsblur.com/",
+      "num_subscribers": 54,
+      "feed_title": "cinebot's blurblog",
+      "private": false,
+      "protected": false,
+      "location": "toronto.",
+      "large_photo_url": "https://graph.facebook.com/885800607/picture?type=large",
+      "id": "social:219352",
+      "photo_url": "https://graph.facebook.com/885800607/picture"
+    }
+  },
+  "requested_follow": false,
+  "followers_youknow": [],
+  "result": "ok"
+}

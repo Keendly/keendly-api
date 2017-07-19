@@ -1,0 +1,41 @@
+{
+  "statistics": {
+    "profile": {
+      "hide_getting_started": false,
+      "preferences": {
+        "intro_page": "4"
+      },
+      "tutorial_finished": false,
+      "has_setup_feeds": true,
+      "is_premium": false,
+      "dashboard_date": "2016-03-27 21:25:06.149088",
+      "has_trained_intelligence": false,
+      "has_found_friends": false
+    },
+    "training": {
+      "title_ng": 0,
+      "author_ng": 0,
+      "tag_ps": 0,
+      "feed_ng": 0,
+      "tag_ng": 0,
+      "title_ps": 0,
+      "feed_ps": 0,
+      "author_ps": 0
+    },
+    "last_seen_ip": "37.135.208.117",
+    "stripe_id": null,
+    "read_story_count": 15,
+    "created_date": "2016-03-27 21:25:06.018924",
+    "timezone": "America/New_York",
+    "feeds": 26,
+    "feed_opens": 55,
+    "email": "moomeen@gmail.com",
+    "last_seen_date": "2016-04-25 23:44:41.486683"
+  },
+  "authenticated": true,
+  "premium_expire": null,
+  "is_premium": false,
+  "payments": [],
+  "user_id": 407992,
+  "result": "ok"
+}

@@ -1,0 +1,124 @@
+{
+  "code": 0,
+  "authenticated": true,
+  "hidden_stories_removed": 0,
+  "elapsed_time": 0.02,
+  "user_search": null,
+  "stories": [
+    {
+      "friend_shares": [],
+      "story_authors": "",
+      "intelligence": {
+        "feed": 0,
+        "tags": 0,
+        "author": 0,
+        "title": 0
+      },
+      "story_permalink": "http://www.sport.es/es/noticias/barca/noche-que-guardiola-alucino-con-messi-5547403?utm_source=rss-noticias&utm_medium=feed&utm_campaign=barca",
+      "reply_count": 0,
+      "comment_user_ids": [],
+      "story_timestamp": "1476694689",
+      "share_user_ids": [],
+      "story_hash": "1573179:f94f7b",
+      "id": "http://www.sport.es/es/noticias/barca/noche-que-guardiola-alucino-con-messi-5547403?utm_source=rss-noticias&utm_medium=feed&utm_campaign=barca",
+      "comment_count": null,
+      "score": 0,
+      "story_tags": [],
+      "share_count": null,
+      "friend_comments": [],
+      "story_date": "2016-10-17 08:58:09",
+      "short_parsed_date": "4:58am",
+      "guid_hash": "f94f7b",
+      "image_urls": [
+        "http://estaticos.sport.es/resources/jpg/0/5/guardiola-estiarte-tribuna-del-camp-nou-1476693989350.jpg"
+      ],
+      "story_feed_id": 1573179,
+      "long_parsed_date": "Today, October 17th 4:58am",
+      "public_comments": [],
+      "read_status": 0,
+      "has_modifications": false,
+      "story_title": "La noche en la que Guardiola alucinó con Messi",
+      "story_content": "<p>Pep Guardiola, actual entrenador del Manchester City,&#160;alucinó con&#160;Leo Messi, la estrella argentina del FC Barcelona, la última vez que lo vio jugar desde la tribuna del Camp Nou. Sucedió en marzo de 2015 cuando Pep Guardiola, por aquel ento...</p><a href=\"http://www.sport.es/es/noticias/barca/noche-que-guardiola-alucino-con-messi-5547403?utm_source=rss-noticias&amp;utm_medium=feed&amp;utm_campaign=barca\">leer la noticia completa</a><br /><img alt=\"\" src=\"http://estaticos.sport.es/resources/jpg/0/5/guardiola-estiarte-tribuna-del-camp-nou-1476693989350.jpg\" />"
+    },
+    {
+      "friend_shares": [],
+      "story_authors": "Damian Galarza",
+      "intelligence": {
+        "feed": 0,
+        "tags": 0,
+        "author": 0,
+        "title": 0
+      },
+      "shared_by_friends": [],
+      "story_permalink": "http://feedproxy.google.com/~r/GiantRobotsSmashingIntoOtherGiantRobots/~3/85xUDrpd83Q/acceptance-tests-with-subdomains",
+      "reply_count": 0,
+      "comment_user_ids": [],
+      "story_timestamp": "1476057600",
+      "share_user_ids": [
+        63012
+      ],
+      "story_hash": "834:433999",
+      "id": "https://robots.thoughtbot.com/acceptance-tests-with-subdomains",
+      "comment_count": 0,
+      "score": 0,
+      "guid_hash": "433999",
+      "share_count": 1,
+      "friend_comments": [],
+      "story_date": "2016-10-10 00:00:00",
+      "share_count_public": 1,
+      "friend_user_ids": [],
+      "public_user_ids": [
+        63012
+      ],
+      "short_parsed_date": "09 Oct 2016, 8:00pm",
+      "story_tags": [],
+      "share_count_friends": 0,
+      "image_urls": [],
+      "story_feed_id": 834,
+      "long_parsed_date": "Sunday, October 9th 8:00pm",
+      "public_comments": [],
+      "read_status": 0,
+      "shared_by_public": [
+        63012
+      ],
+      "commented_by_public": [],
+      "has_modifications": false,
+      "story_title": "Acceptance Tests with Subdomains",
+      "story_content": "<p>You&rsquo;re excited about building a new application which allows users to sign up\nand host their own blog. You decide that each blog will have their own space by\nproviding a subdomain.</p>\n\n<p>Let&rsquo;s start off with a feature spec.</p>\n\n<pre><code class=\"ruby\">require &quot;rails_helper&quot;\n\nfeature &quot;user views a blog&quot; do\n  scenario &quot;homepage&quot; do\n     blog = create(\n      :blog,\n      subdomain: &quot;bobloblaw&quot;,\n      title: &quot;Bob Loblaw's Law Blog&quot;,\n      description: &quot;Welcome to my new blog.&quot;,\n    )\n\n    visit root_path\n\n    expect(page).to have_content blog.title\n    expect(page).to have_content blog.description\n  end\nend\n</code></pre>\n\n<p>In our app we render the blog homepage using the following:</p>\n\n<pre><code class=\"ruby\"># config/routes.rb\nRails.application.routes.draw do\n  root to: &quot;blogs#show&quot;\nend\n</code></pre>\n\n<pre><code class=\"ruby\"># app/controllers/blogs_controller.rb\nclass BlogsController &lt; ApplicationController\n  def show\n    @blog = current_blog\n  end\n\n  private\n\n  def current_blog\n    @_current_blog ||= Blog.find_by(subdomain: request.subdomains.first)\n  end\nend\n</code></pre>\n\n<pre><code class=\"html\">&lt;!-- app/views/blogs/show.html.erb --&gt;\n&lt;h1&gt;&lt;%= @blog.title %&gt;&lt;/h1&gt;\n&lt;p&gt;&lt;%= @blog.description %&gt;&lt;/p&gt;\n</code></pre>\n\n<p>In order to visit the homepage via a subdomain in our test we need to set the\n<code>app_host</code> property for Capybara. We could try to use <code>myblog.localhost</code> but\nRails will think that localhost is the top level domain and therefore won&rsquo;t see\nmyblog as a subdomain. Instead we&rsquo;ll use a fake host name <code>example.com</code>. We\ncan set it by adding the following to our spec before calling <code>visit</code>.</p>\n\n<pre><code class=\"ruby\">Capybara.app_host = &quot;http://myblog.example.com&quot;\n</code></pre>\n\n<p>If we run the test with the default Capybara driver, <code>rack-test</code> it should be\ngreen.  <code>rack-test</code> interacts directly with Rack which means it never uses the\nexternal URL. If we need to use a JavaScript driver however we will need to use\nan actual accessible URL. Add the <code>:js</code> metadata to the scenario and you should\nsee a failure occur.</p>\n\n<p>In order to accommodate a driver like Selenium or capybara-webkit we&rsquo;ll need to\ndo some more work. To start, we will not be able to use our fake host\n<code>example.com</code>. Instead we need a host name which will point to <code>127.0.0.1</code>.\nThere is one readily available to us for use through <code>lvh.me</code>. Its DNS records\nare set up so that <code>lvh.me</code> and all of its subdomains resolve to your local\nmachine at <code>127.0.0.1</code>.</p>\n\n<p>So update\n<code>app_host</code> from <code>http://myblog.example.com</code> to <code>http://myblog.lvh.me</code>. We&rsquo;re\nstill not done yet though.</p>\n\n<p>Next, we need to instruct Capybara to include the port number for the Capybara\nserver in all requests to work correctly. We can do that by adding the following\nto <code>spec/rails_helper.rb</code>:</p>\n\n<pre><code class=\"ruby\">Capybara.configure do |config|\n  config.always_include_port = true\nend\n</code></pre>\n\n<p>If you&rsquo;re using the capybara-webkit driver and configuring it to block all\nunknown URLs <a href=\"https://github.com/thoughtbot/suspenders/blob/master/templates/capybara_webkit.rb#L4\">as we do in Suspenders</a> then you&rsquo;ll need to do\none more thing. In the configuration for capybara-webkit you&rsquo;ll need to add the\n<code>lvh.me</code> host to the URL whitelist. If you&rsquo;re using a Suspenders based app then\nopen up <code>spec/support/capybara_webkit.rb</code> or whichever file you have configured\ncapybara-webkit in. Update the configuration to look like:</p>\n\n<pre><code class=\"ruby\">Capybara::Webkit.configure do |config|\n  config.block_unknown_urls\n  config.allow_url(&quot;myblog.lvh.me&quot;)\nend\n</code></pre>\n\n<p>This will allow Capybara to access our blog through <code>lvh.me</code> and not block it.\nWith this in place we can run our tests and things should be green again.</p>\n<h2 id=\"allowing-more-subdomains\">\n  <a href=\"http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots?_=6155#allowing-more-subdomains\">\n    Allowing more subdomains\n  </a>\n</h2>\n\n<p>Things are working great with the above but we realize that we are coupled to\nthe <code>myblog</code> subdomain within all of our tests. We will finish things off by\nmaking this more flexible.</p>\n\n<p>Let&rsquo;s start by updating our capybara-webkit configuration to allow all\nsubdomains on lvh.me and not just limiting it to <code>myblog</code>. We can do this by\nchanging <code>myblog</code> to <code>*</code>.</p>\n\n<pre><code class=\"ruby\">Capybara::Webkit.configure do |config|¬\n  config.block_unknown_urls¬\n  config.allow_url(&quot;*.lvh.me&quot;)¬\nend\n</code></pre>\n\n<p>Next, let&rsquo;s extract a helper method to make testing subdomains easier.</p>\n\n<p>We&rsquo;ll add the following method to our feature spec:</p>\n\n<pre><code class=\"ruby\">def visit_blog(blog, path = '/')\n  app_host = URI.join(&quot;http://#{blog.subdomain}.lvh.me&quot;, path).to_s\n  using_app_host(app_host) do\n    visit path\n  end\nend\n\ndef using_app_host(host)\n  original_host = Capybara.app_host\n  Capybara.app_host = host\n  yield\nensure\n  Capybara.app_host = original_host\nend\n</code></pre>\n\n<p><code>using_app_host</code> allows us to pass a host for Capybara to use and temporarily\noverrides the <code>app_host</code> rather then permanently setting it. Our use of <code>ensure</code>\nmakes sure that the <code>app_host</code> is always set back to its original value\nregardless of exceptions being raised while <code>yield</code>ing the block.\n<code>visit_blog</code> allows us to pass an instance of a blog as well as a path to\nvisit. By default, this path is the root of the blog.</p>\n\n<p>So we can update our spec to look as follows:</p>\n\n<pre><code class=\"ruby\">require &quot;rails_helper&quot;\n\nfeature &quot;user views a blog&quot; do\n  scenario &quot;homepage&quot;, :js do\n     blog = create(\n      :blog,\n      subdomain: &quot;bobloblaw&quot;,\n      title: &quot;Bob Loblaw's Law Blog&quot;,\n      description: &quot;Welcome to my new blog.&quot;,\n    )\n\n    visit_blog blog\n\n    expect(page).to have_content blog.title\n    expect(page).to have_content blog.description\n  end\n\n  def visit_blog(blog, path = '/')\n    app_host = URI.join(&quot;http://#{blog.subdomain}.lvh.me&quot;, path).to_s\n    using_app_host(app_host) do\n      visit path\n    end\n  end\n\n  def using_app_host(host)\n    original_host = Capybara.app_host\n    Capybara.app_host = host\n    yield\n  ensure\n    Capybara.app_host = original_host\n  end\nend\n</code></pre>",
+      "commented_by_friends": []
+    }
+  ],
+  "result": "ok",
+  "user_id": 407992,
+  "message": "The full River of News is a premium feature.",
+  "classifiers": {
+    "834": {
+      "authors": {},
+      "feeds": {},
+      "titles": {},
+      "tags": {}
+    },
+    "1573179": {
+      "authors": {},
+      "feeds": {},
+      "titles": {},
+      "tags": {}
+    }
+  },
+  "user_profiles": [
+    {
+      "username": "emrox",
+      "feed_address": "http://www.newsblur.com/social/rss/63012/emrox",
+      "user_id": 63012,
+      "feed_link": "http://emrox.newsblur.com/",
+      "num_subscribers": 1,
+      "feed_title": "emrox's blurblog",
+      "private": false,
+      "protected": false,
+      "location": "Hamburg, Germany",
+      "large_photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/63012/large_profile_1375460783.jpg",
+      "id": "social:63012",
+      "photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/63012/thumbnail_profile_1375460783.jpg"
+    }
+  ]
+}

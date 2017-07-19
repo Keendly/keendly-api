@@ -48,30 +48,67 @@ package:
   artifact: build/distributions/keendly-api.zip
 
 functions:
-  login:
-    memorySize: 512
-    timeout: 10
-    handler: com.keendly.api.RequestHandler
-    environment:
-      AUTH_KEY: ${env:AUTH_KEY}
-    events:
-      - http:
-          path: /login
-          method: get
-  deliveries:
+  api:
     role: arn:aws:iam::625416862388:role/lambda_s3_exec_role
     memorySize: 512
-    timeout: 10
+    timeout: 30
     handler: com.keendly.api.RequestHandler
     environment:
+      DB_URL: ${env:DB_URL}
+      DB_USER: ${env:DB_USER}
+      DB_PASSWORD: ${env:DB_PASSWORD}
+      AUTH_KEY: ${env:AUTH_KEY}
       INOREADER_URL: ${env:INOREADER_URL}
       INOREADER_AUTH_URL: ${env:INOREADER_AUTH_URL}
       INOREADER_CLIENT_ID: ${env:INOREADER_CLIENT_ID}
       INOREADER_CLIENT_SECRET: ${env:INOREADER_CLIENT_SECRET}
       INOREADER_REDIRECT_URI: ${env:INOREADER_REDIRECT_URI}
+      OLDREADER_URL: ${env:OLDREADER_URL}
+      OLDREADER_AUTH_URL: ${env:OLDREADER_AUTH_URL}
+      NEWSBLUR_URL: ${env:NEWSBLUR_URL}
+      NEWSBLUR_CLIENT_ID: ${env:NEWSBLUR_CLIENT_ID}
+      NEWSBLUR_CLIENT_SECRET: ${env:NEWSBLUR_CLIENT_SECRET}
+      NEWSBLUR_REDIRECT_URI: ${env:NEWSBLUR_REDIRECT_URI}
     events:
       - http:
+          path: /login
+          method: get
+      - http:
+          path: /deliveries
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
           path: /deliveries/{proxy+}
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
+          path: /subscriptions
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
+          path: /subscriptions/{proxy+}
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
+          path: /feeds
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
+          path: /feeds/{proxy+}
+          method: any
+          authorizer: authorizer
+          cors: true
+      - http:
+          path: /users
+          method: any
+          authorizer: authorizer
+      - http:
+          path: /users/{proxy+}
           method: any
           authorizer: authorizer
   authorizer:

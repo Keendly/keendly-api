@@ -16,4 +16,6 @@ public class User {
     private String deliveryEmail;
     private String deliverySender;
     private Boolean notifyNoArticles;
+    private String accessToken;
+    private String refreshToken;
 }

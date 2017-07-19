@@ -1,0 +1,92 @@
+{
+  "direction": "ltr",
+  "id": "feed/56afe65cc70bc2abb9000304",
+  "title": "EDC is Everyday Carry",
+  "description": "",
+  "self": {
+    "href": "https://theoldreader.com/reader/api/0/stream/items/contents?output=json"
+  },
+  "alternate": {
+    "href": "http://everydaycarry.com/",
+    "type": "text/html"
+  },
+  "updated": 1476729544,
+  "items": [
+    {
+      "crawlTimeMsec": "1476713597687",
+      "timestampUsec": "1476041046000000",
+      "id": "tag:google.com,2005:reader/item/5804dcd8175ad6ee4f01495f",
+      "categories": [
+        "user/-/state/com.google/reading-list",
+        "user/-/state/com.google/read",
+        "user/-/label/The Old Reader Picks"
+      ],
+      "title": "EDC",
+      "published": 1476041046,
+      "updated": 1476041046,
+      "canonical": [
+        {
+          "href": "http://everydaycarry.com/posts/17458/edc?utm_source=rss&utm_medium=rss&utm_campaign=rss"
+        }
+      ],
+      "alternate": [
+        {
+          "href": "http://everydaycarry.com/posts/17458/edc?utm_source=rss&utm_medium=rss&utm_campaign=rss",
+          "type": "text/html"
+        }
+      ],
+      "summary": {
+        "direction": "ltr",
+        "content": "<strong>submitted by <a href=\"http://everydaycarry.com/profile/49079/ian\">Ian</a></strong><div><img src=\"http://cdn.everydaycarry.com/uploads/16-10-09/157fa99565ab47.jpg?x=1476041046\" alt=\"\"></div>\n<ul>\n<li><a href=\"http://everydaycarry.com/go/purchase/18315/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Field Notes County Fair</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/10488/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Leather Business Card Holder</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/619/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Zippo Street</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/7186/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Fisher Cap-O-Matic Space Pen</a></li>\n<li><a href=\"http://www.amazon.com/gp/search?tag=nmow&amp;keywords=Leather+Wallet?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Leather Wallet</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/45686/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Bushnell Pro High Performance Flashlight, 325 Lumens</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/11133/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">SOG XL Fielder</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/1133/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">LifeProof Case for iPhone 4/4S</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/54390/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Sony A390 Digital SLR Camera - Black</a></li>\n</ul>"
+      },
+      "author": "",
+      "annotations": [],
+      "likingUsers": [],
+      "likingUsersCount": 0,
+      "comments": [],
+      "origin": {
+        "streamId": "feed/56afe65cc70bc2abb9000304",
+        "title": "EDC is Everyday Carry",
+        "htmlUrl": "http://everydaycarry.com/"
+      }
+    },
+    {
+      "crawlTimeMsec": "1476661290014",
+      "timestampUsec": "1476035958000000",
+      "id": "tag:google.com,2005:reader/item/58041076175ad6ca9f000ff1",
+      "categories": [
+        "user/-/state/com.google/reading-list",
+        "user/-/state/com.google/read",
+        "user/-/label/The Old Reader Picks"
+      ],
+      "title": "The Usual Suspects",
+      "published": 1476035958,
+      "updated": 1476035958,
+      "canonical": [
+        {
+          "href": "http://everydaycarry.com/posts/17456/the-usual-suspects?utm_source=rss&utm_medium=rss&utm_campaign=rss"
+        }
+      ],
+      "alternate": [
+        {
+          "href": "http://everydaycarry.com/posts/17456/the-usual-suspects?utm_source=rss&utm_medium=rss&utm_campaign=rss",
+          "type": "text/html"
+        }
+      ],
+      "summary": {
+        "direction": "ltr",
+        "content": "<strong>submitted by <a href=\"http://everydaycarry.com/profile/11348/daniel-morris\">Daniel Morris</a></strong><div><img src=\"http://cdn.everydaycarry.com/uploads/16-10-09/157fa8575acc2f.jpg?x=1476035958\" alt=\"\"></div>\n<ul>\n<li><a href=\"http://everydaycarry.com/go/purchase/964/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Streamlight Microstream</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/7232/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Case Medium Stockman CV</a></li>\n<li><a href=\"http://everydaycarry.com/go/product/9619/purchase?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Recycled Firefighter The Sergeant Slim Wallet</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/12117/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Ontario RAT 2</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/18400/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Victorinox I.N.O.X 241682.1</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/301/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Zebra F-701</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/282/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Gerber Shard</a></li>\n<li><a href=\"http://everydaycarry.com/go/purchase/9790/az/6?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=rss\">Gorilla Duct Tape</a></li>\n</ul>"
+      },
+      "author": "",
+      "annotations": [],
+      "likingUsers": [],
+      "likingUsersCount": 0,
+      "comments": [],
+      "origin": {
+        "streamId": "feed/56afe65cc70bc2abb9000304",
+        "title": "EDC is Everyday Carry",
+        "htmlUrl": "http://everydaycarry.com/"
+      }
+    }
+  ]
+}
