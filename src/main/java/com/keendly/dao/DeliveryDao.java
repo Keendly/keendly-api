@@ -164,4 +164,54 @@ public class DeliveryDao {
             return mapToDelivery(map, Collections.EMPTY_LIST);
         }
     }
+
+    public Long createDelivery(Delivery delivery, Long userId) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.begin();
+
+            Long deliveryId = nextId(handle);
+            Date now = new Date();
+
+            handle.createStatement("insert into delivery (id, created, last_modified, manual, user_id) values (:id, :now, :now, :manual, :userId)")
+                .bind("id", deliveryId)
+                .bind("manual", delivery.getManual())
+                .bind("now", now)
+                .bind("userId", userId)
+                .execute();
+
+            for (DeliveryItem item : delivery.getItems()) {
+                Long deliveryItemId = nextId(handle);
+
+                handle.createStatement("insert into deliveryitem "
+                    + "(id, created, last_modified, title, feed_id, with_images, mark_as_read, full_article, delivery_id) values "
+                    + "(:id, :now, :now, :title, :feedId, :includeImages, :markAsRead, :fullArticle, :deliveryId)")
+                    .bind("id", deliveryItemId)
+                    .bind("now", now)
+                    .bind("title", item.getTitle())
+                    .bind("feedId", item.getFeedId())
+                    .bind("includeImages", item.getIncludeImages())
+                    .bind("markAsRead", item.getMarkAsRead())
+                    .bind("fullArticle", item.getFullArticle())
+                    .bind("deliveryId", deliveryId)
+                    .execute();
+            }
+
+            handle.commit();
+            return deliveryId;
+        }
+    }
+
+    public void setExecutionArn(Long deliveryId, String executionArn) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.createStatement("update delivery set execution=:execution where id=:id")
+                .bind("id", deliveryId)
+                .bind("execution", executionArn)
+                .execute();
+        }
+    }
+
+    private Long nextId(Handle handle) {
+        return (Long) handle.createQuery("select nextval('hibernate_sequence')")
+            .first().get("nextval");
+    }
 }

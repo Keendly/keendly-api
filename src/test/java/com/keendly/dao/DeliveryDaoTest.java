@@ -19,12 +19,14 @@ import com.ninja_squad.dbsetup.destination.DriverManagerDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class DeliveryDaoTest {
         c.createStatement().execute(DDL.CREATE_SUBSCRIPTION.sql());
         c.createStatement().execute(DDL.CREATE_DELIVERY.sql());
         c.createStatement().execute(DDL.CREATE_DELIVERY_ITEM.sql());
+        c.createStatement().execute(DDL.CREATE_SEQUENCE.sql());
 
         c.close();
     }
@@ -68,6 +71,7 @@ public class DeliveryDaoTest {
         for (String table : TABLES){
             c.createStatement().execute("drop table " + table);
         }
+        c.createStatement().execute("drop sequence hibernate_sequence");
 
         c.close();
     }
@@ -262,6 +266,43 @@ public class DeliveryDaoTest {
     }
 
     @Test
+    public void given_delivery_when_createDelivery_then_create() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER
+            )
+        );
+        Delivery delivery = Delivery.builder()
+            .manual(true)
+            .items(Arrays.asList(
+                DeliveryItem.builder()
+                    .feedId("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots")
+                    .title("Giant Robots Smashing Into Other Giant Robots")
+                    .includeImages(true)
+                    .markAsRead(true)
+                    .fullArticle(true)
+                    .build()
+            ))
+            .build();
+
+        // when
+        Long deliveryId = deliveryDao.createDelivery(delivery, 1L);
+
+        // then
+        Delivery inserted = deliveryDao.findById(deliveryId);
+        assertEquals(deliveryId, inserted.getId());
+        DeliveryItem insertedItem = inserted.getItems().get(0);
+        assertEquals("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots", insertedItem.getFeedId());
+        assertEquals("Giant Robots Smashing Into Other Giant Robots", insertedItem.getTitle());
+        assertTrue(insertedItem.getIncludeImages());
+        assertTrue(insertedItem.getMarkAsRead());
+        assertTrue(insertedItem.getFullArticle());
+    }
+
+    @Test
+    @Ignore("debug")
     public void test(){
         DbUtils.Environment e = DbUtils.Environment.builder()
             .url("pupaurl")

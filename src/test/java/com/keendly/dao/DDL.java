@@ -70,7 +70,9 @@ public enum DDL {
         + "with_images BOOLEAN NOT NULL, "
         + "delivery_id BIGINT NOT NULL, "
         + "PRIMARY KEY (id), "
-        + "CONSTRAINT fk_afuxcyuvy7y7yecy4qnb0kqtr FOREIGN KEY (delivery_id) REFERENCES delivery (id));");
+        + "CONSTRAINT fk_afuxcyuvy7y7yecy4qnb0kqtr FOREIGN KEY (delivery_id) REFERENCES delivery (id));"),
+
+    CREATE_SEQUENCE("CREATE SEQUENCE hibernate_sequence START 1;");
 
     private String sql;
 

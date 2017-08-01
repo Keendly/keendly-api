@@ -3,7 +3,6 @@ package com.keendly.api;
 import com.keendly.adaptor.Adaptor;
 import com.keendly.adaptor.AdaptorFactory;
 import com.keendly.adaptor.model.ExternalFeed;
-import com.keendly.adaptor.model.auth.Token;
 import com.keendly.dao.DeliveryDao;
 import com.keendly.dao.SubscriptionDao;
 import com.keendly.dao.UserDao;
@@ -11,7 +10,6 @@ import com.keendly.model.Delivery;
 import com.keendly.model.Feed;
 import com.keendly.model.Subscription;
 import com.keendly.model.SubscriptionItem;
-import com.keendly.model.User;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,7 +35,7 @@ public class FeedResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getFeeds(@Context SecurityContext securityContext){
         Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
-        Adaptor adaptor = getAdaptor(userId);
+        Adaptor adaptor = AdaptorFactory.getInstance(userDao.findById(userId));
 
         List<ExternalFeed> subscribedFeeds = adaptor.getFeeds();
         List<SubscriptionItem> subscriptionItems = subscriptionDao.getSubscriptionItems(userId);
@@ -73,16 +71,6 @@ public class FeedResource {
         }
         return Response.ok(feeds)
             .build();
-    }
-
-    private Adaptor getAdaptor(Long userId){
-        User user = userDao.findById(userId);
-
-        Token token = Token.builder()
-            .accessToken(user.getAccessToken())
-            .refreshToken(user.getRefreshToken())
-            .build();
-        return AdaptorFactory.getInstance(user.getProvider(), token);
     }
 
     private static class FeedMapper {
