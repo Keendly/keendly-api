@@ -209,9 +209,4 @@ public class DeliveryDao {
                 .execute();
         }
     }
-
-    private Long nextId(Handle handle) {
-        return (Long) handle.createQuery("select nextval('hibernate_sequence')")
-            .first().get("nextval");
-    }
 }

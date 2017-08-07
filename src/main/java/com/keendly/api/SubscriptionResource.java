@@ -1,12 +1,17 @@
 package com.keendly.api;
 
 import com.keendly.dao.SubscriptionDao;
+import com.keendly.dao.UserDao;
 import com.keendly.model.Subscription;
+import com.keendly.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.util.calendar.ZoneInfo;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -21,8 +26,11 @@ import java.util.List;
 public class SubscriptionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SubscriptionResource.class);
+    private static final int MAX_SUBSCRIPTIONS_COUNT = 5;
+    private static int MAX_FEEDS_IN_SUBSCRIPTION = 25;
 
     private SubscriptionDao subscriptionDao = new SubscriptionDao();
+    private UserDao userDAO = new UserDao();
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
@@ -42,6 +50,58 @@ public class SubscriptionResource {
     public Response deleteSubscription(@PathParam("id") String id) {
         subscriptionDao.deleteSubscription(Long.parseLong(id));
         return Response.ok().build();
+    }
+
+    @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response createSubscription(@Context SecurityContext securityContext, Subscription subscription) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+
+        // validate user
+        User user = userDAO.findById(userId);
+        if (user.getDeliveryEmail().isEmpty()) {
+            LOG.error("Delivery email not configured for user {}", userId);
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Error.DELIVERY_EMAIL_NOT_CONFIGURED.asEntity())
+                .build();
+        }
+        if (user.getDeliverySender().isEmpty()) {
+            LOG.error("Delivery sender not configured for user {}", userId);
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Error.DELIVERY_SENDER_NOT_SET.asEntity())
+                .build();
+        }
+
+        // check if user can have more subscriptions
+        if (subscriptionDao.getSubscriptionsCount(userId) >= MAX_SUBSCRIPTIONS_COUNT) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Error.TOO_MANY_SUBSCRIPTIONS.asEntity(MAX_SUBSCRIPTIONS_COUNT))
+                .build();
+        }
+
+        // validate subscription
+        if (subscription.getFeeds().size() > MAX_FEEDS_IN_SUBSCRIPTION) {
+            LOG.error("Too many ({}) feeds in subscription, max: {}", subscription.getFeeds().size(),
+                MAX_FEEDS_IN_SUBSCRIPTION);
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Error.TOO_MANY_ITEMS.asEntity(MAX_FEEDS_IN_SUBSCRIPTION))
+                .build();
+        }
+
+        Subscription toInsert = Subscription.builder()
+            .timezone(ZoneInfo.getTimeZone(subscription.getTimezone()).toZoneId().getId())
+            .time(subscription.getTime())
+            .feeds(subscription.getFeeds())
+            .build();
+
+        Long subscriptionId = subscriptionDao.createSubscription(toInsert, userId);
+
+        return Response.status(Response.Status.CREATED)
+            .entity(Subscription.builder()
+                .id(subscriptionId)
+                .build())
+            .build();
     }
 }
 

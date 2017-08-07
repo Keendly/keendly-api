@@ -5,6 +5,7 @@ import static com.keendly.utils.ConfigUtils.*;
 import lombok.Builder;
 import lombok.Value;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,11 @@ public class DbUtils {
             .user(parameter("DB_USER"))
             .password(parameter("DB_PASSWORD"))
             .build();
+    }
+
+    public static Long nextId(Handle handle) {
+        return (Long) handle.createQuery("select nextval('hibernate_sequence')")
+            .first().get("nextval");
     }
 
     @Builder

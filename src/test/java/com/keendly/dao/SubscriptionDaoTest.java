@@ -16,6 +16,7 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class SubscriptionDaoTest {
         c.createStatement().execute(DDL.CREATE_USER.sql());
         c.createStatement().execute(DDL.CREATE_SUBSCRIPTION.sql());
         c.createStatement().execute(DDL.CREATE_SUBSCRIPTION_ITEM.sql());
+        c.createStatement().execute(DDL.CREATE_SEQUENCE.sql());
 
         c.close();
     }
@@ -44,6 +46,7 @@ public class SubscriptionDaoTest {
         c.createStatement().execute("drop table subscriptionitem");
         c.createStatement().execute("drop table subscription");
         c.createStatement().execute("drop table keendlyuser");
+        c.createStatement().execute("drop sequence hibernate_sequence");
 
         c.close();
     }
@@ -347,7 +350,7 @@ public class SubscriptionDaoTest {
     }
 
     @Test
-    public void deleteSubscription_then_setDeleted() {
+    public void when_deleteSubscription_then_setDeleted() {
         // given
         execute(
             sequenceOf(
@@ -366,5 +369,128 @@ public class SubscriptionDaoTest {
         // then
         List<Subscription> subscriptions = subscriptionDao.getSubscriptions(1L, 1, 1);
         assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void given_noSubscriptions_when_getSubscriptionsCount_then_returnZero() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER
+            )
+        );
+
+        // when
+        long count = subscriptionDao.getSubscriptionsCount(1L);
+
+        // then
+        assertEquals(0, count);
+    }
+
+    @Test
+    public void given_subscriptionsExist_when_getSubscriptionsCount_then_returnCount() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(1L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build(),
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build()
+            )
+        );
+
+        // when
+        long count = subscriptionDao.getSubscriptionsCount(1L);
+
+        // then
+        assertEquals(2, count);
+    }
+
+    @Test
+    public void given_subscriptionsNotActive_when_getSubscriptionsCount_then_dontCount() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(1L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", false, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build()
+            )
+        );
+
+        // when
+        long count = subscriptionDao.getSubscriptionsCount(1L);
+
+        // then
+        assertEquals(0, count);
+    }
+
+    @Test
+    public void given_subscriptionsDeleted_when_getSubscriptionsCount_then_dontCount() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(1L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", true)
+                    .build()
+            )
+        );
+
+        // when
+        long count = subscriptionDao.getSubscriptionsCount(1L);
+
+        // then
+        assertEquals(0, count);
+    }
+
+    @Test
+    public void given_subscription_when_createSubscription_then_create() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER
+            )
+        );
+        Subscription subscription = Subscription.builder()
+            .time("01:00")
+            .timezone("Europe/Madrid")
+            .feeds(Arrays.asList(
+                SubscriptionItem.builder()
+                    .feedId("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots")
+                    .title("Giant Robots Smashing Into Other Giant Robots")
+                    .includeImages(true)
+                    .markAsRead(true)
+                    .fullArticle(true)
+                    .build()
+            ))
+            .build();
+
+        // when
+        Long subscriptionId = subscriptionDao.createSubscription(subscription, 1L);
+
+        // then
+        Subscription inserted = subscriptionDao.findById(subscriptionId);
+        assertEquals(subscriptionId, inserted.getId());
+        assertEquals("DAILY", inserted.getFrequency());
+        assertTrue(inserted.getActive());
+        SubscriptionItem insertedItem = inserted.getFeeds().get(0);
+        assertEquals("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots", insertedItem.getFeedId());
+        assertEquals("Giant Robots Smashing Into Other Giant Robots", insertedItem.getTitle());
+        assertTrue(insertedItem.getIncludeImages());
+        assertTrue(insertedItem.getMarkAsRead());
+        assertTrue(insertedItem.getFullArticle());
     }
 }

@@ -162,13 +162,55 @@ public class SubscriptionDao {
             .build();
     }
 
-    public void createSubscription(Subscription subscription) {
-        // TODO
+    public Long createSubscription(Subscription subscription, Long userId) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.begin();
+
+            Long subscriptionId = nextId(handle);
+            Date now = new Date();
+
+            handle.createStatement("insert into subscription "
+                + "(id, created, last_modified, active, frequency, time, timezone, user_id, deleted) values "
+                + "(:id, :now, :now, true, 'DAILY', :time, :timezone, :userId, false)")
+                .bind("id", subscriptionId)
+                .bind("now", now)
+                .bind("time", subscription.getTime())
+                .bind("timezone", subscription.getTimezone())
+                .bind("userId", userId)
+                .execute();
+
+            for (SubscriptionItem item : subscription.getFeeds()) {
+                Long subscriptionItemId = nextId(handle);
+
+                handle.createStatement("insert into subscriptionitem "
+                    + "(id, feed_id, full_article, mark_as_read, with_images, subscription_id, created, last_modified, title) values "
+                    + "(:id, :feedId, :fullArticle, :markAsRead, :includeImages, :subscriptionId, :now, :now, :title)")
+                    .bind("id", subscriptionItemId)
+                    .bind("feedId", item.getFeedId())
+                    .bind("fullArticle", item.getFullArticle())
+                    .bind("markAsRead", item.getMarkAsRead())
+                    .bind("includeImages", item.getIncludeImages())
+                    .bind("subscriptionId", subscriptionId)
+                    .bind("now", now)
+                    .bind("title", item.getTitle())
+                    .execute();
+            }
+
+            handle.commit();
+            return subscriptionId;
+        }
     }
 
     public Subscription findById(Long id) {
-        // TODO
-        return null;
+        try (Handle handle = getDB(environment).open()) {
+            Map<String, Object> map =
+                handle.createQuery(SUBSCRIPTION_SELECT + " where " + SUBSCRIPTION_ALIAS + ".id = :id")
+                    .bind("id", id)
+                    .first();
+
+            List<SubscriptionItem> items = getSubscriptionItems(handle, id);
+            return mapToSubscription(map, items);
+        }
     }
 
     public void deleteSubscription(Long id) {
@@ -187,5 +229,15 @@ public class SubscriptionDao {
 
     public void updateSubscription(Subscription subscription) {
         // TODO
+    }
+
+    public long getSubscriptionsCount(Long userId) {
+        try (Handle handle = getDB(environment).open()) {
+            Map<String, Object> res =  handle.createQuery("select count(*) from " + SUBSCRIPTION_TABLE + " s where s.user_id = :userId and s.active = TRUE and s.deleted = FALSE")
+                .bind("userId", userId)
+                .first();
+
+            return (long) res.get("count");
+        }
     }
 }
