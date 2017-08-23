@@ -1,8 +1,14 @@
 package com.keendly.dao;
 
-import static com.keendly.dao.Constants.*;
-import static com.ninja_squad.dbsetup.Operations.*;
-import static org.junit.Assert.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.keendly.adaptor.inoreader.InoreaderAdaptor;
 import com.keendly.adaptor.model.ExternalFeed;
@@ -22,15 +28,18 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import static com.keendly.dao.Constants.CREATE_DEFAULT_USER;
+import static com.keendly.dao.Constants.PASSWORD;
+import static com.keendly.dao.Constants.TEST_ENVIRONMENT;
+import static com.keendly.dao.Constants.URL;
+import static com.keendly.dao.Constants.USER;
+import static com.ninja_squad.dbsetup.Operations.deleteAllFrom;
+import static com.ninja_squad.dbsetup.Operations.insertInto;
+import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class DeliveryDaoTest {
 
@@ -320,7 +329,6 @@ public class DeliveryDaoTest {
             .build();
 
         InoreaderAdaptor inoreaderAdaptor = new InoreaderAdaptor(token);
-
 
         DeliveryDao deliveryDao = new DeliveryDao(e);
 

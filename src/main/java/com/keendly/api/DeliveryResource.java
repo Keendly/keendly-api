@@ -1,7 +1,27 @@
 package com.keendly.api;
 
+import java.io.ByteArrayInputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
@@ -23,24 +43,6 @@ import com.keendly.states.S3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.ByteArrayInputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Path("/deliveries")
 public class DeliveryResource {
 
@@ -50,18 +52,32 @@ public class DeliveryResource {
     private static String BUCKET = "keendly";
     private static final String STATE_MACHINE_ARN = "arn:aws:states:eu-west-1:625416862388:stateMachine:Delivery5";
 
-    private AmazonS3Client amazonS3Client = new AmazonS3Client();
-    private static AWSStepFunctions awsStepFunctionsClient = getStepFunctionsClient();
+    private DeliveryDao deliveryDAO;
+    private UserDao userDAO;
+    private AmazonS3 amazonS3Client;
+    private AWSStepFunctions awsStepFunctionsClient;
 
-    private static AWSStepFunctions getStepFunctionsClient() {
+    public DeliveryResource() {
+        this.deliveryDAO = new DeliveryDao();
+        this.userDAO = new UserDao();
+        this.amazonS3Client = new AmazonS3Client();
+        this.awsStepFunctionsClient = getStepFunctionsClient();
+    }
+    
+    public DeliveryResource(DeliveryDao deliveryDao, UserDao userDao, 
+        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions) {
+        this.deliveryDAO = deliveryDao;
+        this.userDAO = userDao;
+        this.amazonS3Client = amazonS3;
+        this.awsStepFunctionsClient = awsStepFunctions;
+    }
+    
+    private AWSStepFunctions getStepFunctionsClient() {
         AWSStepFunctions awsStepFunctionsClient = new AWSStepFunctionsClient();
         awsStepFunctionsClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
         return awsStepFunctionsClient;
     }
-
-    private DeliveryDao deliveryDAO = new DeliveryDao();
-    private UserDao userDAO = new UserDao();
-
+    
     @GET
     @Path("/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -97,13 +113,13 @@ public class DeliveryResource {
 
         // validate user
         User user = userDAO.findById(userId);
-        if (user.getDeliveryEmail().isEmpty()) {
+        if (user.getDeliveryEmail() == null || user.getDeliveryEmail().isEmpty()) {
             LOG.error("Delivery email not configured for user {}", userId);
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(Error.DELIVERY_EMAIL_NOT_CONFIGURED.asEntity())
                 .build();
         }
-        if (user.getDeliverySender().isEmpty()) {
+        if (user.getDeliverySender() == null || user.getDeliverySender().isEmpty()) {
             LOG.error("Delivery sender not configured for user {}", userId);
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(Error.DELIVERY_SENDER_NOT_SET.asEntity())
@@ -122,7 +138,9 @@ public class DeliveryResource {
         Adaptor adaptor = AdaptorFactory.getInstance(user);
         Map<String, List<FeedEntry>> unread =
             adaptor.getUnread(delivery.getItems().stream().map(item -> item.getFeedId()).collect(Collectors.toList()));
-
+        LOG.debug("Fetched {} unread articles for {} feeds", 
+            unread.values().stream().flatMap(List::stream).collect(Collectors.toList()), unread.size());
+        
         // check if articles number is not above the limit
         int allArticles = unread.values().stream()
             .mapToInt(Collection::size)
