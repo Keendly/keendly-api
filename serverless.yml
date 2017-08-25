@@ -107,10 +107,12 @@ functions:
           path: /users
           method: any
           authorizer: authorizer
+          cors: true
       - http:
           path: /users/{proxy+}
           method: any
           authorizer: authorizer
+          cors: true
   authorizer:
     handler: com.keendly.auth.AuthorizerHandler
     environment:

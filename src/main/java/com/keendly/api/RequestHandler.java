@@ -14,6 +14,13 @@ public class RequestHandler extends GatewayRequestObjectHandler {
 
     public RequestHandler() {
         CorsFilter corsFilter = new CorsFilter.Builder()
+            .allowMethodGet()
+            .allowMethodPost()
+            .allowMethodPut()
+            .allowMethodDelete()
+            .allowMethodOptions()
+            .allowMethodHead()
+            .allowMethod("PATCH")
             .build();
 
         // initialize the container with your resource configuration
@@ -30,6 +37,13 @@ public class RequestHandler extends GatewayRequestObjectHandler {
     public static void main(String[] args) throws IOException {
         String BASE_URI = "http://localhost:8888/";
         CorsFilter corsFilter = new CorsFilter.Builder()
+            .allowMethodGet()
+            .allowMethodPost()
+            .allowMethodPut()
+            .allowMethodDelete()
+            .allowMethodOptions()
+            .allowMethodHead()
+            .allowMethod("PATCH")
             .build();
 
         ResourceConfig config = new ResourceConfig()

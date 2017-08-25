@@ -43,4 +43,17 @@ public class UserDao {
                 .build();
         }
     }
+
+    public void updateUser(Long id, User user) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.createStatement("update keendlyuser "
+                + "set delivery_email = :deliveryEmail, delivery_sender = :deliverySender, notify_no_articles = :notifyNoArticles "
+                + "where id = :userId")
+                .bind("userId", id)
+                .bind("deliverySender", user.getDeliverySender())
+                .bind("deliveryEmail", user.getDeliveryEmail())
+                .bind("notifyNoArticles", user.getNotifyNoArticles())
+                .execute();
+        }
+    }
 }
