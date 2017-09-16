@@ -4,6 +4,7 @@ import static com.keendly.utils.DbUtils.*;
 
 import com.keendly.model.Subscription;
 import com.keendly.model.SubscriptionItem;
+import com.keendly.model.User;
 import org.skife.jdbi.v2.Handle;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SubscriptionDao {
 
@@ -74,7 +76,7 @@ public class SubscriptionDao {
             List<Subscription> subscriptions = new ArrayList<>();
             for (Map<String, Object> map : subscriptionMaps) {
                 List<SubscriptionItem> items = getSubscriptionItems(handle, (Long) map.get(SUBSCRIPTION_ALIAS + "_id"));
-                Subscription subscription = mapToSubscription(map, items);
+                Subscription subscription = mapToSubscription(map, items, false);
                 subscriptions.add(subscription);
             }
             return subscriptions;
@@ -111,7 +113,7 @@ public class SubscriptionDao {
 
             List<SubscriptionItem> subscriptionItems = new ArrayList<>();
             for (Map<String, Object> map : subscriptionItemMaps) {
-                Subscription subscription = mapToSubscription(map, Collections.EMPTY_LIST);
+                Subscription subscription = mapToSubscription(map, Collections.EMPTY_LIST, false);
                 SubscriptionItem i = mapToSubscriptionItem(map, subscription);
                 subscriptionItems.add(i);
             }
@@ -135,8 +137,8 @@ public class SubscriptionDao {
         return items;
     }
 
-    private Subscription mapToSubscription(Map<String, Object> map, List<SubscriptionItem> items) {
-        return Subscription.builder()
+    private Subscription mapToSubscription(Map<String, Object> map, List<SubscriptionItem> items, boolean includeUser) {
+        Subscription.SubscriptionBuilder builder =  Subscription.builder()
             .id((Long) map.get(SUBSCRIPTION_ALIAS + "_id"))
             .created((Date) map.get(SUBSCRIPTION_ALIAS + "_created"))
             .lastModified((Date) map.get(SUBSCRIPTION_ALIAS + "_last_modified"))
@@ -144,20 +146,22 @@ public class SubscriptionDao {
             .frequency((String) map.get(SUBSCRIPTION_ALIAS + "_frequency"))
             .time((String) map.get(SUBSCRIPTION_ALIAS + "_time"))
             .timezone((String) map.get(SUBSCRIPTION_ALIAS + "_timezone"))
-            .feeds(items)
-            .build();
+            .feeds(items);
+        if (includeUser) {
+            builder.user(User.builder()
+                .id((Long) map.get(SUBSCRIPTION_ALIAS + "_user_id"))
+                .build());
+        }
+        return builder.build();
     }
 
     private SubscriptionItem mapToSubscriptionItem(Map<String, Object> item, Subscription subscription) {
         return SubscriptionItem.builder()
             .feedId((String) item.get(SUBSCRIPTION_ITEM_ALIAS + "_feed_id"))
-            .id((Long) item.get(SUBSCRIPTION_ITEM_ALIAS + "_id"))
             .title((String) item.get(SUBSCRIPTION_ITEM_ALIAS + "_title"))
             .markAsRead((Boolean) item.get(SUBSCRIPTION_ITEM_ALIAS + "_mark_as_read"))
             .fullArticle((Boolean) item.get(SUBSCRIPTION_ITEM_ALIAS + "_full_article"))
             .includeImages((Boolean) item.get(SUBSCRIPTION_ITEM_ALIAS + "_with_images"))
-            .created((Date) item.get(SUBSCRIPTION_ITEM_ALIAS + "_created"))
-            .lastModified((Date) item.get(SUBSCRIPTION_ITEM_ALIAS + "_last_modified"))
             .subscription(subscription)
             .build();
     }
@@ -209,7 +213,7 @@ public class SubscriptionDao {
                     .first();
 
             List<SubscriptionItem> items = getSubscriptionItems(handle, id);
-            return mapToSubscription(map, items);
+            return mapToSubscription(map, items, false);
         }
     }
 
@@ -239,5 +243,40 @@ public class SubscriptionDao {
 
             return (long) res.get("count");
         }
+    }
+
+    public List<Subscription> getDailySubscriptionsToDeliver() {
+        try (Handle handle = getDB(environment).open()) {
+            List<Map<String, Object>> res =  handle.createQuery("select s.id from subscription s " +
+                "where s.active = TRUE and s.deleted = FALSE and s.frequency = 'DAILY' and not exists (" +
+                "   select id from delivery d where d.subscription_id = s.id " +
+                "       and d.created at time zone s.timezone > case " +
+                "               when cast(now() at time zone s.timezone as time) > cast(s.time as time) " + // if today the scheduled hour has passed
+                "               then to_timestamp(to_char(now() at time zone s.timezone,'YYYY-MM-DD ')||s.time, 'YYYY-MM-DD HH24:MI') " + // then last scheduled delivery was today
+                "               else to_timestamp(to_char((now() at time zone s.timezone) - interval '1 day', 'YYYY-MM-DD ')||s.time, 'YYYY-MM-DD HH24:MI') " + // otherwise yesterday
+                "       end) " +
+                "       and s.created at time zone s.timezone < case " + // and was created before last scheduled delivery
+                "               when cast(now() at time zone s.timezone as time) > cast(s.time as time) " +
+                "               then to_timestamp(to_char(now() at time zone s.timezone,'YYYY-MM-DD ')||s.time, 'YYYY-MM-DD HH24:MI') " +
+                "               else to_timestamp(to_char((now() at time zone s.timezone) - interval '1 day' ,'YYYY-MM-DD ')||s.time, 'YYYY-MM-DD HH24:MI') " +
+                "       end")
+                .list();
+
+            List<Long> ids = res.stream().map(e -> (long) e.get("id")).collect(Collectors.toList());
+
+            String q = SUBSCRIPTION_SELECT + " where " + SUBSCRIPTION_ALIAS + ".id in "
+                + "(" + ids.stream().map(Object::toString).collect(Collectors.joining(",")) + ")";
+            List<Map<String, Object>> subscriptionMaps = handle.createQuery(q).list();
+
+            List<Subscription> subscriptions = new ArrayList<>();
+            for (Map<String, Object> map : subscriptionMaps) {
+                List<SubscriptionItem> items = getSubscriptionItems(handle, (Long) map.get(SUBSCRIPTION_ALIAS + "_id"));
+                Subscription subscription = mapToSubscription(map, items, true);
+                subscriptions.add(subscription);
+            }
+
+            return subscriptions;
+        }
+
     }
 }

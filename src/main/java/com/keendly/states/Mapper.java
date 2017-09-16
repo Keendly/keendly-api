@@ -24,7 +24,7 @@ public class Mapper {
                     .includeImages(item.getIncludeImages())
                     .markAsRead(item.getMarkAsRead())
                     .fullArticle(item.getFullArticle())
-                    .articles(unread.containsKey(item.getFeedId())
+                    .articles(!unread.containsKey(item.getFeedId())
                         ? Collections.emptyList()
                         : unread.get(item.getFeedId()).stream()
                         .map((article) -> DeliveryArticle.builder()

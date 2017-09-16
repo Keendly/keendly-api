@@ -16,9 +16,11 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SubscriptionDaoTest {
 
@@ -85,9 +87,6 @@ public class SubscriptionDaoTest {
         // then
         assertEquals(1, items.size());
         SubscriptionItem item = items.get(0);
-        assertEquals(1L, item.getId().longValue());
-        assertEquals("2016-05-19 23:59:00.274", format(item.getCreated()));
-        assertEquals("2016-05-19 23:59:00.259", format(item.getLastModified()));
         assertEquals("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots", item.getFeedId());
         assertEquals("Giant Robots Smashing Into Other Giant Robots", item.getTitle());
         assertEquals(true, item.getIncludeImages());
@@ -197,9 +196,6 @@ public class SubscriptionDaoTest {
 
         assertEquals(1, subscription.getFeeds().size());
         SubscriptionItem item = subscription.getFeeds().get(0);
-        assertEquals(1L, item.getId().longValue());
-        assertEquals("2016-05-19 23:59:00.274", format(item.getCreated()));
-        assertEquals("2016-05-19 23:59:00.259", format(item.getLastModified()));
         assertEquals("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots", item.getFeedId());
         assertEquals("Giant Robots Smashing Into Other Giant Robots", item.getTitle());
         assertEquals(true, item.getIncludeImages());
@@ -492,5 +488,43 @@ public class SubscriptionDaoTest {
         assertTrue(insertedItem.getIncludeImages());
         assertTrue(insertedItem.getMarkAsRead());
         assertTrue(insertedItem.getFullArticle());
+    }
+
+    @Test
+    public void given_noDeliveriesAndDeliveryHourPassed_when_getDailySubscriptionsToDeliver_then_returnSubscription() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER
+            )
+        );
+        // prepare procedure for time https://stackoverflow.com/a/20314509
+
+        // no delivery found since today's scheduled time
+    }
+
+    @Test
+    public void given_noDeliveriesAndDeliveryHourNotPassed_when_getDailySubscriptionsToDeliver_then_returnSubscription() {
+        // no delivery found since yesterday's scheduled  time
+    }
+
+    @Test
+    public void give_subscriptionCreatedAfterLastScheduledDelivery_when_getDailySubscriptionsToDeliver_then_dontReturn() {
+        // no delivery found since yesterday's scheduled  time
+    }
+
+    @Test
+    public void give_subscriptionCreatedBeforeLastScheduledDelivery_when_getDailySubscriptionsToDeliver_then_returnSubscription() {
+        // no delivery found since yesterday's scheduled  time
+    }
+
+    @Test
+    public void la(){
+        List<Long> a = new ArrayList<>();
+        a.add(1L);
+        a.add(2L);
+        a.add(3L);
+        System.out.println(a.stream().map(Object::toString).collect(Collectors.joining(",")));
     }
 }

@@ -36,13 +36,17 @@ public class SubscriptionResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSubscriptions(@Context SecurityContext securityContext,
         @QueryParam("page") String page,
-        @QueryParam("pageSize") String pageSize) {
-        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
-
-        List<Subscription> subscriptions =
-            subscriptionDao.getSubscriptions(userId, Integer.valueOf(page), Integer.valueOf(pageSize));
-        return Response.ok(subscriptions)
-            .build();
+        @QueryParam("pageSize") String pageSize,
+        @QueryParam("q") String query) {
+        List<Subscription> subscriptions;
+        if (query != null) {
+            subscriptions = subscriptionDao.getDailySubscriptionsToDeliver();
+        } else {
+            Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+            subscriptions =
+                subscriptionDao.getSubscriptions(userId, Integer.valueOf(page), Integer.valueOf(pageSize));
+        }
+        return Response.ok(subscriptions).build();
     }
 
     @DELETE

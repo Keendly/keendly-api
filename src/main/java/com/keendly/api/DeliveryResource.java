@@ -1,26 +1,9 @@
 package com.keendly.api;
 
-import java.io.ByteArrayInputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.invoke.LambdaInvokerFactory;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -40,8 +23,28 @@ import com.keendly.model.User;
 import com.keendly.states.DeliveryRequest;
 import com.keendly.states.Mapper;
 import com.keendly.states.S3Object;
+import com.keendly.veles.VelesRequest;
+import com.keendly.veles.VelesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.io.ByteArrayInputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Path("/deliveries")
 public class DeliveryResource {
@@ -56,20 +59,25 @@ public class DeliveryResource {
     private UserDao userDAO;
     private AmazonS3 amazonS3Client;
     private AWSStepFunctions awsStepFunctionsClient;
+    private VelesService velesService;
 
     public DeliveryResource() {
         this.deliveryDAO = new DeliveryDao();
         this.userDAO = new UserDao();
         this.amazonS3Client = new AmazonS3Client();
         this.awsStepFunctionsClient = getStepFunctionsClient();
+        this.velesService = LambdaInvokerFactory.builder()
+            .lambdaClient(AWSLambdaClientBuilder.defaultClient())
+            .build(VelesService.class);
     }
     
     public DeliveryResource(DeliveryDao deliveryDao, UserDao userDao, 
-        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions) {
+        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions, VelesService velesService) {
         this.deliveryDAO = deliveryDao;
         this.userDAO = userDao;
         this.amazonS3Client = amazonS3;
         this.awsStepFunctionsClient = awsStepFunctions;
+        this.velesService = velesService;
     }
     
     private AWSStepFunctions getStepFunctionsClient() {
@@ -93,16 +101,15 @@ public class DeliveryResource {
         @QueryParam("page") String page,
         @QueryParam("pageSize") String pageSize) {
         Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        List<Delivery> deliveries;
 
         if (subscriptionId != null) {
-            List<Delivery> deliveries = deliveryDAO.getSubscriptionDeliveries(userId, Long.valueOf(subscriptionId));
-            return Response.ok(deliveries).build();
+            deliveries = deliveryDAO.getSubscriptionDeliveries(userId, Long.valueOf(subscriptionId));
         } else {
-            List<Delivery> deliveries =
+            deliveries =
                 deliveryDAO.getDeliveries(userId, Integer.valueOf(page), Integer.valueOf(pageSize));
-            return Response.ok(deliveries)
-                .build();
         }
+        return Response.ok(deliveries).build();
     }
 
     @POST
@@ -146,7 +153,7 @@ public class DeliveryResource {
             .mapToInt(Collection::size)
             .sum();
 
-        if (allArticles > MAX_ARTICLES_IN_DELIVERY){
+        if (allArticles > MAX_ARTICLES_IN_DELIVERY) {
             LOG.warn("More than {} articles found", MAX_ARTICLES_IN_DELIVERY);
             unread = FeedUtils.getNewest(unread, MAX_ARTICLES_IN_DELIVERY);
         }
@@ -173,7 +180,15 @@ public class DeliveryResource {
             deliveryDAO.createDelivery(toInsert, userId);
 
             if (user.getNotifyNoArticles()) {
-                // TODO implement sending email
+                LOG.debug("Notifications on no articles enabled, sending email to {}", user.getEmail());
+                VelesRequest velesRequest = VelesRequest.builder()
+                    .sender("contact@keendly.com")
+                    .senderName("Keendly Support")
+                    .subject("There was nothing to deliver this time")
+                    .recipient(user.getEmail())
+                    .message(noArticlesEmailMessage(delivery))
+                    .build();
+                velesService.sendEmail(velesRequest);
             }
             return Response.ok(toInsert).build();
         }
@@ -214,6 +229,18 @@ public class DeliveryResource {
         StartExecutionResult result = awsStepFunctionsClient.startExecution(startExecutionRequest);
         LOG.debug("Started step functions execution: {}", result.getExecutionArn());
         return result.getExecutionArn();
+    }
+
+    private static String noArticlesEmailMessage(Delivery delivery) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<ul>");
+        for (DeliveryItem item : delivery.getItems()){
+            sb.append("<li>");
+            sb.append(item.getTitle());
+            sb.append("</li>");
+        }
+        sb.append("</ul>");
+        return VelesService.TEMPLATE.replace("{{FEEDS}}", sb.toString());
     }
 }
 

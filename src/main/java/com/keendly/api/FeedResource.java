@@ -67,10 +67,11 @@ public class FeedResource {
             Feed feed = feedMapper.toModel(subscribedFeed, subscriptions, lastDelivery, unreadCount);
             feeds.add(feed);
 
-            // TODO refresh token after implement userDAO
+            if (adaptor.getToken().isRefreshed()) {
+                userDao.updateToken(userId, adaptor.getToken().getAccessToken());
+            }
         }
-        return Response.ok(feeds)
-            .build();
+        return Response.ok(feeds).build();
     }
 
     private static class FeedMapper {

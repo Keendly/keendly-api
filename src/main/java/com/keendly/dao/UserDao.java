@@ -56,4 +56,13 @@ public class UserDao {
                 .execute();
         }
     }
+
+    public void updateToken(Long id, String token) {
+        try (Handle handle  = getDB(environment).open()) {
+            handle.createStatement("update keendlyuser set access_token = :token where id = :userId")
+                .bind("userId", id)
+                .bind("token", token)
+                .execute();
+        }
+    }
 }
