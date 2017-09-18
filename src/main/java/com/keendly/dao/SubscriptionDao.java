@@ -231,8 +231,18 @@ public class SubscriptionDao {
         }
     }
 
-    public void updateSubscription(Subscription subscription) {
-        // TODO
+    public void disableSubscription(Long id) {
+        try (Handle handle = getDB(environment).open()) {
+            String update = new StringBuilder()
+                .append("update ")
+                .append(SUBSCRIPTION_TABLE)
+                .append(" set active=false")
+                .append(" where id = :subscriptionId")
+                .toString();
+            handle.createStatement(update)
+                .bind("subscriptionId", id)
+                .execute();
+        }
     }
 
     public long getSubscriptionsCount(Long userId) {

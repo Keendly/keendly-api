@@ -70,12 +70,6 @@ public class SubscriptionResource {
                 .entity(Error.DELIVERY_EMAIL_NOT_CONFIGURED.asEntity())
                 .build();
         }
-        if (user.getDeliverySender().isEmpty()) {
-            LOG.error("Delivery sender not configured for user {}", userId);
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(Error.DELIVERY_SENDER_NOT_SET.asEntity())
-                .build();
-        }
 
         // check if user can have more subscriptions
         if (subscriptionDao.getSubscriptionsCount(userId) >= MAX_SUBSCRIPTIONS_COUNT) {
@@ -106,6 +100,18 @@ public class SubscriptionResource {
                 .id(subscriptionId)
                 .build())
             .build();
+    }
+
+    @PATCH
+    @Path("/{id}")
+    public Response updateSubscription(@PathParam("id") String id, Subscription subscription) {
+        // only disabling subscriptions supported
+        if (!subscription.getActive()) {
+            subscriptionDao.disableSubscription(Long.parseLong(id));
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 }
 

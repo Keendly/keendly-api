@@ -4,6 +4,7 @@ import static com.keendly.utils.DbUtils.*;
 
 import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
+import com.keendly.model.Subscription;
 import org.skife.jdbi.v2.Handle;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class DeliveryDao {
 
-    private static String DELIVERY_SELECT = "select id, created, last_modified, date, errordescription from delivery";
+    private static String DELIVERY_SELECT = "select id, created, last_modified, date, errordescription, subscription_id from delivery";
 
     private Environment environment;
 
@@ -35,8 +36,14 @@ public class DeliveryDao {
                     .bind("id", id)
                     .first();
 
+            Subscription subscription = null;
+            if (map.containsKey("subscription_id")) {
+                subscription = Subscription.builder()
+                    .id((Long) map.get("subscription_id"))
+                    .build();
+            }
             List<DeliveryItem> items = getDeliveryItems(handle, id);
-            return mapToDelivery(map, items);
+            return mapToDelivery(map, items, subscription);
         }
     }
 
@@ -93,7 +100,7 @@ public class DeliveryDao {
         return items;
     }
 
-    private Delivery mapToDelivery(Map<String, Object> map, List<DeliveryItem> items) {
+    private Delivery mapToDelivery(Map<String, Object> map, List<DeliveryItem> items, Subscription subscription) {
         return Delivery.builder()
             .id((Long) map.get("id"))
             .created((Date) map.get("created"))
@@ -101,6 +108,7 @@ public class DeliveryDao {
             .deliveryDate((Date) map.get("date"))
             .items(items)
             .timezone((String) map.get("timezone"))
+            .subscription(subscription)
             .build();
     }
 
@@ -109,7 +117,7 @@ public class DeliveryDao {
         for (Map<String, Object> map : deliveryMaps) {
             List<DeliveryItem> items = getDeliveryItems(handle, (Long) map.get("id"));
 
-            Delivery delivery = mapToDelivery(map, items);
+            Delivery delivery = mapToDelivery(map, items, null);
 
             deliveries.add(delivery);
         }
@@ -135,7 +143,7 @@ public class DeliveryDao {
                     .list();
 
             for (Map<String, Object> item : list) {
-                Delivery d = mapToDelivery(item, Collections.EMPTY_LIST);
+                Delivery d = mapToDelivery(item, Collections.EMPTY_LIST, null);
                 ret.put((String) item.get("feed_id"), d);
             }
         }
@@ -161,7 +169,7 @@ public class DeliveryDao {
             if (map == null || map.isEmpty()) {
                 return null;
             }
-            return mapToDelivery(map, Collections.EMPTY_LIST);
+            return mapToDelivery(map, Collections.EMPTY_LIST, null);
         }
     }
 
@@ -172,11 +180,12 @@ public class DeliveryDao {
             Long deliveryId = nextId(handle);
             Date now = new Date();
 
-            handle.createStatement("insert into delivery (id, created, last_modified, manual, user_id) values (:id, :now, :now, :manual, :userId)")
+            handle.createStatement("insert into delivery (id, created, last_modified, manual, user_id, subscription_id) values (:id, :now, :now, :manual, :userId, :subscriptionId)")
                 .bind("id", deliveryId)
                 .bind("manual", delivery.getManual())
                 .bind("now", now)
                 .bind("userId", userId)
+                .bind("subscriptionId", delivery.getSubscription() != null ? delivery.getSubscription().getId() : null)
                 .execute();
 
             for (DeliveryItem item : delivery.getItems()) {

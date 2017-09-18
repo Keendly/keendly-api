@@ -6,7 +6,6 @@ import java.util.Map;
 public enum Error {
 
     DELIVERY_EMAIL_NOT_CONFIGURED("Send-to-Kindle email address not configured"),
-    DELIVERY_SENDER_NOT_SET("Sender email address not set"),
     TOO_MANY_ITEMS("Max number of feeds in single delivery: %d"),
     WRONG_EMAIL("Email address incorrect, allowed domains: %s"),
     NO_ARTICLES("No unread articles found"),

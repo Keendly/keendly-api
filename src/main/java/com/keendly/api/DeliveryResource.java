@@ -126,12 +126,6 @@ public class DeliveryResource {
                 .entity(Error.DELIVERY_EMAIL_NOT_CONFIGURED.asEntity())
                 .build();
         }
-        if (user.getDeliverySender() == null || user.getDeliverySender().isEmpty()) {
-            LOG.error("Delivery sender not configured for user {}", userId);
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(Error.DELIVERY_SENDER_NOT_SET.asEntity())
-                .build();
-        }
 
         // validate delivery
         if (delivery.getItems().size() > MAX_FEEDS_IN_DELIVERY) {

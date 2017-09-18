@@ -31,6 +31,7 @@ public class UserResource {
             User.builder()
                 .id(user.getId())
                 .provider(user.getProvider())
+                .email(user.getEmail())
                 .deliveryEmail(user.getDeliveryEmail())
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())

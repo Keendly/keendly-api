@@ -91,22 +91,6 @@ public class DeliveryResourceTest {
     }
 
     @Test
-    public void given_deliverySenderEmailNotConfigured_when_createDelivery_then_returnError() {
-        // given
-        when(userDao.findById(eq(USER_ID))).thenReturn(
-            User.builder()
-                .deliveryEmail("blabla@kindle.com")
-                .build());
-
-        // when
-        Response response = createDelivery(Delivery.builder().build());
-
-        // then
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-        assertEquals("DELIVERY_SENDER_NOT_SET", ((Map) response.getEntity()).get("code"));
-    }
-
-    @Test
     public void given_tooManyFeeds_when_createDelivery_then_returnError() {
         // given
         when(userDao.findById(eq(USER_ID))).thenReturn(

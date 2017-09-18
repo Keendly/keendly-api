@@ -368,6 +368,28 @@ public class SubscriptionDaoTest {
     }
 
     @Test
+    public void when_disableSubscription_then_setNotActive() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(1L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build()
+            )
+        );
+
+        // when
+        subscriptionDao.disableSubscription(1L);
+
+        // then
+        List<Subscription> subscriptions = subscriptionDao.getSubscriptions(1L, 1, 1);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
     public void given_noSubscriptions_when_getSubscriptionsCount_then_returnZero() {
         // given
         execute(

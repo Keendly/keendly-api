@@ -1,14 +1,8 @@
 package com.keendly.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import static com.keendly.dao.Constants.*;
+import static com.ninja_squad.dbsetup.Operations.*;
+import static org.junit.Assert.*;
 
 import com.keendly.adaptor.inoreader.InoreaderAdaptor;
 import com.keendly.adaptor.model.ExternalFeed;
@@ -28,18 +22,15 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.keendly.dao.Constants.CREATE_DEFAULT_USER;
-import static com.keendly.dao.Constants.PASSWORD;
-import static com.keendly.dao.Constants.TEST_ENVIRONMENT;
-import static com.keendly.dao.Constants.URL;
-import static com.keendly.dao.Constants.USER;
-import static com.ninja_squad.dbsetup.Operations.deleteAllFrom;
-import static com.ninja_squad.dbsetup.Operations.insertInto;
-import static com.ninja_squad.dbsetup.Operations.sequenceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DeliveryDaoTest {
 
@@ -308,6 +299,43 @@ public class DeliveryDaoTest {
         assertTrue(insertedItem.getIncludeImages());
         assertTrue(insertedItem.getMarkAsRead());
         assertTrue(insertedItem.getFullArticle());
+    }
+
+    @Test
+    public void given_delivery_when_createDeliveryForSubscription_then_setSubscriptionId() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build()
+            )
+        );
+        Delivery delivery = Delivery.builder()
+            .manual(false)
+            .subscription(Subscription.builder()
+                .id(2L)
+                .build())
+            .items(Arrays.asList(
+                DeliveryItem.builder()
+                    .feedId("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots")
+                    .title("Giant Robots Smashing Into Other Giant Robots")
+                    .includeImages(true)
+                    .markAsRead(true)
+                    .fullArticle(true)
+                    .build()
+            ))
+            .build();
+
+        // when
+        Long deliveryId = deliveryDao.createDelivery(delivery, 1L);
+
+        // then
+        Delivery inserted = deliveryDao.findById(deliveryId);
+        assertEquals(2L, inserted.getSubscription().getId().longValue());
     }
 
     @Test
