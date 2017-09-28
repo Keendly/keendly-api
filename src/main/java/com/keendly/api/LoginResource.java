@@ -1,57 +1,159 @@
 package com.keendly.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.keendly.adaptor.Adaptor;
+import com.keendly.adaptor.AdaptorFactory;
+import com.keendly.adaptor.model.ExternalUser;
+import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.auth.AuthorizerHandler;
+import com.keendly.dao.ClientDao;
+import com.keendly.dao.UserDao;
+import com.keendly.model.Provider;
+import com.keendly.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClaims;
+import lombok.Builder;
+import lombok.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @Path("/login")
 public class LoginResource {
 
-    private static int ONE_MONTH = 60 * 60 * 24 * 30;
+    private static final Logger LOG = LoggerFactory.getLogger(LoginResource.class);
+    private static int ONE_HOUR = 60 * 60;
+    private static int ONE_MONTH = ONE_HOUR * 24 * 30;
 
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Consumes({ MediaType.APPLICATION_JSON })
-    public Response login(
-        @QueryParam("code") String code,
-        @QueryParam("state") String state,
-        @QueryParam("error") String error) {
+    private UserDao userDAO = new UserDao();
+    private ClientDao clientDAO = new ClientDao();
 
-        Map<String, String> ret = new HashMap<String, String>();
-//        ret.put("accessToken", authToken);
-        ret.put("accessToken", generate(Long.valueOf(code), 6000)); // TODO for testing
-        ret.put("tokeType", "Bearer");
-        ret.put("expiresIn", Integer.toString(6000));
-//        ret.put("expiresIn", Integer.toString(expiresIn));
-        ret.put("scope", "write");
+    private enum GrantType {
+        BEARER("bearer", ONE_HOUR), // to get token on behalf of a user
+        PASSWORD("password", ONE_MONTH), // authenticate with password
+        AUTHENTICATION_CODE("authentication_code", ONE_MONTH), // authenticate with code - OAuth
+        CLIENT_CREDENTIALS("client_credentials", ONE_HOUR); // for clients, to get token without user's scope
 
-        return Response.ok(ret).build();
+        String text;
+        int expiresIn;
+        GrantType(String s, int expiresIn){
+            this.expiresIn = expiresIn;
+            this.text = s;
+        }
+
+        static GrantType fromString(String s){
+            for (GrantType grantType : GrantType.values()){
+                if (grantType.text.equals(s)){
+                    return grantType;
+                }
+            }
+            return null;
+        }
     }
 
-    private String generate(long userId, int expiresIn) {
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response login(LoginRequest request) {
+        GrantType grantType = GrantType.fromString(request.getGrantType());
+        switch (grantType) {
+        case PASSWORD:
+        case AUTHENTICATION_CODE:
+            Credentials credentials = Credentials.builder()
+                .authorizationCode(request.getCode())
+                .username(request.getUsername())
+                .password(request.getPassword())
+                .build();
+            Adaptor adaptor = AdaptorFactory.getInstance(request.getProvider(), credentials);
+            ExternalUser externalUser = adaptor.getUser();
+            Optional<User> user = userDAO.findByProviderId(externalUser.getId(), request.getProvider());
+            String token;
+            if (user.isPresent()) {
+                token = generate(user.get().getId(), grantType.expiresIn);
+                userDAO.updateTokens(user.get().getId(), adaptor.getToken());
+            } else {
+                long userId =
+                    userDAO.createUser(externalUser.getId(), externalUser.getUserName(), request.getProvider());
+                token = generate(userId, grantType.expiresIn);
+                userDAO.updateTokens(userId, adaptor.getToken());
+            }
+            return Response.ok(token).build();
+        case BEARER:
+            Optional<String> clientSecret = clientDAO.findClientSecret(request.getClientId());
+            if (!clientSecret.isPresent()) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+            Optional<Integer> userId = decode(request.getToken(), clientSecret.get());
+            if (!userId.isPresent()) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+            String authToken = generate(Long.valueOf(userId.get()), grantType.expiresIn);
+            return Response.ok(authToken).build();
+        case CLIENT_CREDENTIALS:
+            Optional<String> secret = clientDAO.findClientSecret(request.getClientId());
+            if (!secret.isPresent() || !secret.get().equals(request.getClientSecret())) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } else {
+                return Response.ok(generate(-1L, grantType.expiresIn)).build();
+            }
+        default:
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    private static String generate(long userId, int expiresIn) {
         Claims claims = new DefaultClaims();
         claims.put("userId", Long.toString(userId));
-        claims.setExpiration(Date.from(LocalDateTime.now().plusSeconds(ONE_MONTH).
+        claims.setExpiration(Date.from(LocalDateTime.now().plusSeconds(expiresIn).
             atZone(ZoneId.systemDefault()).toInstant()));
 
         return Jwts.builder()
             .setClaims(claims)
             .signWith(SignatureAlgorithm.HS512, AuthorizerHandler.KEY)
             .compact();
+    }
+
+    private static Optional<Integer> decode(String token, String secret){
+        try {
+            Claims claims = Jwts.parser()
+                .setSigningKey(secret.getBytes())
+                .parseClaimsJws(token)
+                .getBody();
+            return Optional.of(claims.get("userId", Integer.class));
+        } catch (Exception e){
+            LOG.error("Error decoding token", e);
+            return Optional.empty();
+        }
+    }
+
+    @Builder
+    @Value
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public static class LoginRequest {
+
+        private Provider provider;
+        private String code;
+        private String username;
+        private String password;
+        @JsonProperty("grant_type")
+        private String grantType;
+        @JsonProperty("client_id")
+        private String clientId;
+        @JsonProperty("client_secret")
+        private String clientSecret;
+        private String token;
     }
 }

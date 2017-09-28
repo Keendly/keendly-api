@@ -53,8 +53,7 @@ public class NewsblurAdaptorTest {
                         .withBodyFile("newsblur/given_ResponseOK_when_login_then_ReturnToken.json")));
 
         // when
-        Credentials credentials = new Credentials();
-        credentials.setAuthorizationCode(AUTHORIZATION_CODE);
+        Credentials credentials = Credentials.builder().authorizationCode(AUTHORIZATION_CODE).build();
 
         NewsblurAdaptor adaptor = new NewsblurAdaptor(credentials, config());
         Token token = adaptor.getToken();
@@ -84,7 +83,7 @@ public class NewsblurAdaptorTest {
         // when
         Exception thrown = null;
         try {
-            newsblurAdaptor(null).login(new Credentials());
+            newsblurAdaptor(null).login(Credentials.builder().build());
         } catch (Exception e){
             thrown = e;
         }

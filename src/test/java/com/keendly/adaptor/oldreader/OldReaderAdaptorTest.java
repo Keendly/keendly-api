@@ -40,9 +40,7 @@ public class OldReaderAdaptorTest {
                         .withBodyFile("oldreader/given_ResponseOK_when_login_then_ReturnToken")));
 
         // when
-        Credentials credentials = new Credentials();
-        credentials.setUsername(USERNAME);
-        credentials.setPassword(PASSWORD);
+        Credentials credentials = Credentials.builder().username(USERNAME).password(PASSWORD).build();
 
         OldReaderAdaptor adaptor = new OldReaderAdaptor(credentials, config());
         Token token = adaptor.getToken();

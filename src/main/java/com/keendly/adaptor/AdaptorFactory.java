@@ -1,6 +1,7 @@
 package com.keendly.adaptor;
 
 import com.keendly.adaptor.inoreader.InoreaderAdaptor;
+import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
 import com.keendly.adaptor.newsblur.NewsblurAdaptor;
 import com.keendly.adaptor.oldreader.OldReaderAdaptor;
@@ -19,11 +20,11 @@ public class AdaptorFactory {
         ADAPTORS.put(Provider.NEWSBLUR, NewsblurAdaptor.class);
     }
 
-    public static Adaptor getInstance(Provider provider){
+    public static Adaptor getInstance(Provider provider, Credentials credentials){
         for (Provider p : ADAPTORS.keySet()){
             if (p == provider){
                 try {
-                    return ADAPTORS.get(p).newInstance();
+                    return ADAPTORS.get(p).getConstructor(Credentials.class).newInstance(credentials);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

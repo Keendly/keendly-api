@@ -72,7 +72,8 @@ functions:
     events:
       - http:
           path: /login
-          method: get
+          method: post
+          cors: true
       - http:
           path: /deliveries
           method: any

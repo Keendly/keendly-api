@@ -72,7 +72,15 @@ public enum DDL {
         + "PRIMARY KEY (id), "
         + "CONSTRAINT fk_afuxcyuvy7y7yecy4qnb0kqtr FOREIGN KEY (delivery_id) REFERENCES delivery (id));"),
 
-    CREATE_SEQUENCE("CREATE SEQUENCE hibernate_sequence START 1;");
+    CREATE_SEQUENCE("CREATE SEQUENCE hibernate_sequence START 1;"),
+
+    CREATE_CLIENT("CREATE TABLE client ("
+        + "id BIGINT NOT NULL, "
+        + "client_id CHARACTER VARYING(255) NOT NULL, "
+        + "client_secret CHARACTER VARYING(255) NOT NULL, "
+        + "name CHARACTER VARYING(255) NOT NULL, "
+        + "PRIMARY KEY (id), "
+        + "UNIQUE (client_id));");
 
     private String sql;
 

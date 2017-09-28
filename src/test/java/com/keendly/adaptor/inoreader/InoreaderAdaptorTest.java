@@ -56,8 +56,7 @@ public class InoreaderAdaptorTest {
             aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(response.toString())));
 
         // when
-        Credentials credentials = new Credentials();
-        credentials.setAuthorizationCode(AUTHORIZATION_CODE);
+        Credentials credentials = Credentials.builder().authorizationCode(AUTHORIZATION_CODE).build();
 
         InoreaderAdaptor adaptor = new InoreaderAdaptor(credentials, config());
         Token token = adaptor.getToken();
@@ -84,7 +83,7 @@ public class InoreaderAdaptorTest {
         // when
         Exception thrown = null;
         try {
-            new InoreaderAdaptor(new Credentials(), config());
+            new InoreaderAdaptor(Credentials.builder().build(), config());
         } catch (Exception e) {
             thrown = e;
         }
