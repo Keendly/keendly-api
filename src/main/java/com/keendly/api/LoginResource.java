@@ -21,13 +21,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
@@ -72,6 +77,12 @@ public class LoginResource {
         switch (grantType) {
         case PASSWORD:
         case AUTHENTICATION_CODE:
+            if (request.getCode() != null) {
+                // state required with authorization code
+                if (!validateStateToken(request.getState(), request.getProvider())) {
+                    return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
+            }
             Credentials credentials = Credentials.builder()
                 .authorizationCode(request.getCode())
                 .username(request.getUsername())
@@ -139,6 +150,42 @@ public class LoginResource {
         }
     }
 
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getState(@QueryParam("provider") Provider provider) {
+        String state = generateStateToken(provider);
+        return Response.ok(Collections.singletonMap("state", state)).build();
+    }
+
+    private static String generateStateToken(Provider p) {
+        Claims claims = new DefaultClaims();
+        claims.put("provider", p.name());
+        claims.setExpiration(Date.from(LocalDateTime.now().plusMinutes(5).
+            atZone(ZoneId.systemDefault()).toInstant()));
+
+        String token = Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.HS256, AuthorizerHandler.KEY).compact();
+        return URLEncoder.encode(token);
+    }
+
+    private static boolean validateStateToken(String encodedToken, Provider provider) {
+        try {
+            String token = URLDecoder.decode(encodedToken);
+            Claims claims = Jwts.parser().setSigningKey(AuthorizerHandler.KEY).parseClaimsJws(token).getBody();
+
+            Provider p = Provider.valueOf(claims.get("provider", String.class));
+            if (p != provider) {
+                LOG.error("Incorrect provider in token {}, expected {}, got {}", encodedToken, provider.name(),
+                    p.name());
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            LOG.error("Error validating state token", e);
+            return false;
+        }
+    }
+
     @Builder
     @Value
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -155,5 +202,6 @@ public class LoginResource {
         @JsonProperty("client_secret")
         private String clientSecret;
         private String token;
+        private String state;
     }
 }

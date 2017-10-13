@@ -2,19 +2,11 @@ package com.keendly.auth;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.keendly.model.Provider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.DefaultClaims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,35 +60,5 @@ public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Ma
 
         Claims claims = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).getBody();
         return claims.get("userId", String.class);
-    }
-
-    public static String generateStateToken(String provider) {
-        Provider p = Provider.valueOf(provider);
-        Claims claims = new DefaultClaims();
-        claims.put("provider", p.name());
-        claims.setExpiration(Date.from(LocalDateTime.now().plusMinutes(5).
-            atZone(ZoneId.systemDefault()).toInstant()));
-
-        String token = Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.HS256, KEY).compact();
-        return URLEncoder.encode(token);
-    }
-
-    public static boolean validateStateToken(String encodedToken, Provider provider) {
-        try {
-            String token = URLDecoder.decode(encodedToken);
-            Claims claims = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).getBody();
-
-            Provider p = Provider.valueOf(claims.get("provider", String.class));
-            if (p != provider) {
-                LOG.error("Incorrect provider in token {}, expected {}, got {}", encodedToken, provider.name(),
-                    p.name());
-                return false;
-            }
-
-            return true;
-        } catch (Exception e) {
-            LOG.error("Error validating state token", e);
-            return false;
-        }
     }
 }
