@@ -4,6 +4,14 @@ machine:
   services:
     - docker
 
+dependencies:
+  override:
+    - ./gradlew dependencies
+
+test:
+  override:
+    - ./gradlew test
+
 deployment:
   master:
     branch: master
