@@ -115,7 +115,7 @@ public class InoreaderAdaptor extends GoogleReaderTypeAdaptor {
             return response;
         } else if (refreshIfNeeded && isUnauthorized(response.getStatus())) {
             String refreshedToken = refreshAccessToken(token.getRefreshToken());
-            token.setRefreshToken(refreshedToken);
+            token.setAccessToken(refreshedToken);
             token.setRefreshed(true);
             return post(url, false);
         } else {

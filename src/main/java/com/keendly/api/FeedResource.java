@@ -85,6 +85,9 @@ public class FeedResource {
 
         boolean success = adaptor.markArticleRead(ids);
         if (success) {
+            if (adaptor.getToken().isRefreshed()) {
+                userDao.updateToken(userId, adaptor.getToken().getAccessToken());
+            }
             return Response.ok().build();
         } else {
             return Response.serverError().build();
@@ -100,6 +103,9 @@ public class FeedResource {
 
         boolean success = adaptor.markArticleUnread(ids);
         if (success) {
+            if (adaptor.getToken().isRefreshed()) {
+                userDao.updateToken(userId, adaptor.getToken().getAccessToken());
+            }
             return Response.ok().build();
         } else {
             return Response.serverError().build();
@@ -115,6 +121,9 @@ public class FeedResource {
 
         boolean success = adaptor.saveArticle(ids);
         if (success) {
+            if (adaptor.getToken().isRefreshed()) {
+                userDao.updateToken(userId, adaptor.getToken().getAccessToken());
+            }
             return Response.ok().build();
         } else {
             return Response.serverError().build();
