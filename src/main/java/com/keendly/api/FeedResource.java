@@ -11,7 +11,9 @@ import com.keendly.model.Feed;
 import com.keendly.model.Subscription;
 import com.keendly.model.SubscriptionItem;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -72,6 +74,51 @@ public class FeedResource {
             }
         }
         return Response.ok(feeds).build();
+    }
+
+    @POST
+    @Path("/markArticleRead")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response markArticleRead(@Context SecurityContext securityContext, List<String> ids) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        Adaptor adaptor = AdaptorFactory.getInstance(userDao.findById(userId));
+
+        boolean success = adaptor.markArticleRead(ids);
+        if (success) {
+            return Response.ok().build();
+        } else {
+            return Response.serverError().build();
+        }
+    }
+
+    @POST
+    @Path("/markArticleUnread")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response markArticleUnread(@Context SecurityContext securityContext, List<String> ids) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        Adaptor adaptor = AdaptorFactory.getInstance(userDao.findById(userId));
+
+        boolean success = adaptor.markArticleUnread(ids);
+        if (success) {
+            return Response.ok().build();
+        } else {
+            return Response.serverError().build();
+        }
+    }
+
+    @POST
+    @Path("/saveArticle")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response saveArticle(@Context SecurityContext securityContext, List<String> ids) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        Adaptor adaptor = AdaptorFactory.getInstance(userDao.findById(userId));
+
+        boolean success = adaptor.saveArticle(ids);
+        if (success) {
+            return Response.ok().build();
+        } else {
+            return Response.serverError().build();
+        }
     }
 
     private static class FeedMapper {
