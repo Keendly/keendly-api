@@ -1,17 +1,18 @@
 package com.keendly.dao;
 
-import static com.keendly.dao.Constants.*;
+import static com.keendly.dao.Helpers.*;
 import static com.ninja_squad.dbsetup.Operations.*;
 import static org.junit.Assert.*;
 
 import com.keendly.model.Subscription;
 import com.keendly.model.SubscriptionItem;
-import com.ninja_squad.dbsetup.DbSetup;
-import com.ninja_squad.dbsetup.destination.DriverManagerDestination;
+import com.keendly.utils.DbUtils;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -24,14 +25,22 @@ import java.util.stream.Collectors;
 
 public class SubscriptionDaoTest {
 
-    private SubscriptionDao subscriptionDao = new SubscriptionDao(TEST_ENVIRONMENT);
+    @ClassRule
+    public static PostgreSQLContainer database = new PostgreSQLContainer();
+
+    private SubscriptionDao subscriptionDao = new SubscriptionDao(DbUtils.Environment.builder()
+        .url(database.getJdbcUrl())
+        .user(database.getUsername())
+        .password(database.getPassword())
+        .build());
 
     public static final Operation DELETE_ALL =
         deleteAllFrom("subscriptionitem", "subscription", "keendlyuser");
 
     @BeforeClass
     public static void createTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute(DDL.CREATE_USER.sql());
         c.createStatement().execute(DDL.CREATE_SUBSCRIPTION.sql());
@@ -43,7 +52,8 @@ public class SubscriptionDaoTest {
 
     @AfterClass
     public static void dropTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute("drop table subscriptionitem");
         c.createStatement().execute("drop table subscription");
@@ -54,8 +64,7 @@ public class SubscriptionDaoTest {
     }
 
     private void execute(Operation operation) {
-        DbSetup dbSetup = new DbSetup(new DriverManagerDestination(URL, USER, PASSWORD), operation);
-        dbSetup.launch();
+        executeAgainstDabase(operation, database);
     }
 
     private static String format(Date date) {

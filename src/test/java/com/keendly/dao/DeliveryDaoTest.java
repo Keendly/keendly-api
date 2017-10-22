@@ -1,6 +1,6 @@
 package com.keendly.dao;
 
-import static com.keendly.dao.Constants.*;
+import static com.keendly.dao.Helpers.*;
 import static com.ninja_squad.dbsetup.Operations.*;
 import static org.junit.Assert.*;
 
@@ -14,13 +14,13 @@ import com.keendly.model.Subscription;
 import com.keendly.model.SubscriptionItem;
 import com.keendly.model.User;
 import com.keendly.utils.DbUtils;
-import com.ninja_squad.dbsetup.DbSetup;
-import com.ninja_squad.dbsetup.destination.DriverManagerDestination;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -34,16 +34,21 @@ import java.util.stream.Collectors;
 
 public class DeliveryDaoTest {
 
-    private DeliveryDao deliveryDao = new DeliveryDao(TEST_ENVIRONMENT);
+    @ClassRule
+    public static PostgreSQLContainer database = new PostgreSQLContainer();
+
+    private DeliveryDao deliveryDao = new DeliveryDao(DbUtils.Environment.builder()
+        .url(database.getJdbcUrl())
+        .user(database.getUsername())
+        .password(database.getPassword())
+        .build());
 
     private static String[] TABLES = {"deliveryitem", "delivery", "subscription", "keendlyuser"};
 
-    public static final Operation DELETE_ALL =
-        deleteAllFrom(TABLES);
+    public static final Operation DELETE_ALL = deleteAllFrom(TABLES);
 
     private void execute(Operation operation) {
-        DbSetup dbSetup = new DbSetup(new DriverManagerDestination(URL, USER, PASSWORD), operation);
-        dbSetup.launch();
+        executeAgainstDabase(operation, database);
     }
 
     private static String format(Date date) {
@@ -53,7 +58,8 @@ public class DeliveryDaoTest {
 
     @BeforeClass
     public static void createTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute(DDL.CREATE_USER.sql());
         c.createStatement().execute(DDL.CREATE_SUBSCRIPTION.sql());
@@ -66,7 +72,8 @@ public class DeliveryDaoTest {
 
     @AfterClass
     public static void dropTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         for (String table : TABLES){
             c.createStatement().execute("drop table " + table);

@@ -1,18 +1,19 @@
 package com.keendly.dao;
 
-import static com.keendly.dao.Constants.*;
+import static com.keendly.dao.Helpers.*;
 import static com.ninja_squad.dbsetup.Operations.*;
 import static org.junit.Assert.*;
 
 import com.keendly.adaptor.model.auth.Token;
 import com.keendly.model.Provider;
 import com.keendly.model.User;
-import com.ninja_squad.dbsetup.DbSetup;
-import com.ninja_squad.dbsetup.destination.DriverManagerDestination;
+import com.keendly.utils.DbUtils;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,19 +21,25 @@ import java.util.Optional;
 
 public class UserDaoTest {
 
+    @ClassRule
+    public static PostgreSQLContainer database = new PostgreSQLContainer();
+
     private final static String TABLE = "keendlyuser";
 
-    private UserDao userDao = new UserDao(TEST_ENVIRONMENT);
-
+    private UserDao userDao = new UserDao(DbUtils.Environment.builder()
+        .url(database.getJdbcUrl())
+        .user(database.getUsername())
+        .password(database.getPassword())
+        .build());
 
     private void execute(Operation operation) {
-        DbSetup dbSetup = new DbSetup(new DriverManagerDestination(URL, USER, PASSWORD), operation);
-        dbSetup.launch();
+        executeAgainstDabase(operation, database);
     }
 
     @BeforeClass
     public static void createTable() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute(DDL.CREATE_USER.sql());
         c.createStatement().execute(DDL.CREATE_SEQUENCE.sql());
@@ -42,7 +49,8 @@ public class UserDaoTest {
 
     @AfterClass
     public static void dropTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute("drop table " + TABLE);
         c.createStatement().execute("drop sequence hibernate_sequence");

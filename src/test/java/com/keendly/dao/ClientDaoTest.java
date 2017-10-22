@@ -1,15 +1,16 @@
 package com.keendly.dao;
 
-import static com.keendly.dao.Constants.*;
+import static com.keendly.dao.Helpers.*;
 import static com.ninja_squad.dbsetup.Operations.*;
 import static org.junit.Assert.*;
 
-import com.ninja_squad.dbsetup.DbSetup;
-import com.ninja_squad.dbsetup.destination.DriverManagerDestination;
+import com.keendly.utils.DbUtils;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,14 +18,22 @@ import java.util.Optional;
 
 public class ClientDaoTest {
 
-    private ClientDao clientDao = new ClientDao(TEST_ENVIRONMENT);
+    @ClassRule
+    public static PostgreSQLContainer database = new PostgreSQLContainer();
+
+    private ClientDao clientDao = new ClientDao(DbUtils.Environment.builder()
+        .url(database.getJdbcUrl())
+        .user(database.getUsername())
+        .password(database.getPassword())
+        .build());
 
     public static final Operation DELETE_ALL =
         deleteAllFrom("client");
 
     @BeforeClass
     public static void createTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute(DDL.CREATE_CLIENT.sql());
         c.createStatement().execute(DDL.CREATE_SEQUENCE.sql());
@@ -33,7 +42,8 @@ public class ClientDaoTest {
 
     @AfterClass
     public static void dropTables() throws Exception {
-        Connection c = DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection c =
+            DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
         c.createStatement().execute("drop table client");
         c.createStatement().execute("drop sequence hibernate_sequence");
@@ -41,8 +51,7 @@ public class ClientDaoTest {
     }
 
     private void execute(Operation operation) {
-        DbSetup dbSetup = new DbSetup(new DriverManagerDestination(URL, USER, PASSWORD), operation);
-        dbSetup.launch();
+        executeAgainstDabase(operation, database);
     }
 
     @Test

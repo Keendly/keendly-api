@@ -1,0 +1,11 @@
+machine:
+  java:
+    version: openjdk8
+  services:
+    - docker
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - ./gradlew build -x test
