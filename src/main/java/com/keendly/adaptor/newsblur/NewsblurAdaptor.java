@@ -88,8 +88,8 @@ public class NewsblurAdaptor extends Adaptor {
         Form form = new Form();
         form.param("code", credentials.getAuthorizationCode());
         form.param("redirect_uri", config.get(REDIRECT_URL));
-        form.param("client_id", UrlEscapers.urlFormParameterEscaper().escape(config.get(CLIENT_ID)));
-        form.param("client_secret", UrlEscapers.urlFormParameterEscaper().escape(config.get(CLIENT_SECRET)));
+        form.param("client_id", config.get(CLIENT_ID));
+        form.param("client_secret", config.get(CLIENT_SECRET));
         form.param("scope", "write");
         form.param("grant_type", "authorization_code");
 

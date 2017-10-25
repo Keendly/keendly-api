@@ -131,6 +131,28 @@ public class DeliveryDaoTest {
     }
 
     @Test
+    public void given_deliveryError_when_findById_then_returnError() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("delivery")
+                    .columns("id", "created", "last_modified", "user_id", "manual", "errordescription")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:11.739", 1L, true, "BOOM!")
+                    .build()
+            )
+        );
+
+        // when
+        Delivery delivery = deliveryDao.findById(2L);
+
+        // then
+        assertNotNull(delivery);
+        assertEquals("BOOM!", delivery.getError());
+    }
+
+    @Test
     public void given_noDeliveries_when_getSubscriptionDeliveries_then_returnEmptyList() {
 
     }
@@ -343,6 +365,52 @@ public class DeliveryDaoTest {
         // then
         Delivery inserted = deliveryDao.findById(deliveryId);
         assertEquals(2L, inserted.getSubscription().getId().longValue());
+    }
+
+    @Test
+    public void given_delivered_when_setDeliveryFinished_then_deliveryUpdated() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("delivery")
+                    .columns("id", "created", "last_modified", "user_id", "manual")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:11.739", 1L, false)
+                    .build()
+            )
+        );
+
+        // when
+        deliveryDao.setDeliveryFinished(2L, new Date(), null);
+
+        // then
+        Delivery delivery = deliveryDao.findById(2L);
+        assertNotNull(delivery.getDeliveryDate());
+        assertNull(delivery.getError());
+    }
+
+    @Test
+    public void given_deliveryError_when_setDeliveryFinished_then_deliveryUpdated() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("delivery")
+                    .columns("id", "created", "last_modified", "user_id", "manual")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:11.739", 1L, false)
+                    .build()
+            )
+        );
+
+        // when
+        deliveryDao.setDeliveryFinished(2L, null, "BOOOM!");
+
+        // then
+        Delivery delivery = deliveryDao.findById(2L);
+        assertNotNull(delivery.getError());
+        assertNull(delivery.getDeliveryDate());
     }
 
     @Test

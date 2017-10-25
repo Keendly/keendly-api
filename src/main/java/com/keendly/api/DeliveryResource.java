@@ -53,7 +53,7 @@ public class DeliveryResource {
     private static int MAX_FEEDS_IN_DELIVERY = 25;
     private static int MAX_ARTICLES_IN_DELIVERY = 500;
     private static String BUCKET = "keendly";
-    private static final String STATE_MACHINE_ARN = "arn:aws:states:eu-west-1:625416862388:stateMachine:Delivery5";
+    private static final String STATE_MACHINE_ARN = "arn:aws:states:eu-west-1:625416862388:stateMachine:Delivery1";
 
     private DeliveryDao deliveryDAO;
     private UserDao userDAO;
@@ -235,6 +235,14 @@ public class DeliveryResource {
         }
         sb.append("</ul>");
         return VelesService.TEMPLATE.replace("{{FEEDS}}", sb.toString());
+    }
+
+    @PATCH
+    @Path("/{id}")
+    public Response updateDelivery(@PathParam("id") String id, Delivery delivery) {
+        // only setting deliveryDate or error supported
+        deliveryDAO.setDeliveryFinished(Long.parseLong(id), delivery.getDeliveryDate(), delivery.getError());
+        return Response.ok().build();
     }
 }
 

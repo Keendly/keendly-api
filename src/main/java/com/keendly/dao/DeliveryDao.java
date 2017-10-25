@@ -109,6 +109,7 @@ public class DeliveryDao {
             .items(items)
             .timezone((String) map.get("timezone"))
             .subscription(subscription)
+            .error((String) map.get("errordescription"))
             .build();
     }
 
@@ -215,6 +216,16 @@ public class DeliveryDao {
             handle.createStatement("update delivery set execution=:execution where id=:id")
                 .bind("id", deliveryId)
                 .bind("execution", executionArn)
+                .execute();
+        }
+    }
+
+    public void setDeliveryFinished(Long deliveryId, Date deliveryDate, String error) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.createStatement("update delivery set date=:date, errordescription=:error where id=:id")
+                .bind("id", deliveryId)
+                .bind("date", deliveryDate)
+                .bind("error", error)
                 .execute();
         }
     }
