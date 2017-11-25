@@ -91,7 +91,7 @@ public class UserDaoTest {
     }
 
     @Test
-    public void when_findByProviderIdr_then_return_returnUser(){
+    public void given_userExistss_when_findByProviderId_then_return_returnUser(){
         // given
         execute(
             sequenceOf(
@@ -108,6 +108,22 @@ public class UserDaoTest {
 
         // then
         assertTrue(user.isPresent());
+    }
+
+    @Test
+    public void given_userDoesntExist_when_findByProviderIdr_then_return_empty(){
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom(TABLE)
+            )
+        );
+
+        // when
+        Optional<User> user = userDao.findByProviderId("123", Provider.INOREADER);
+
+        // then
+        assertFalse(user.isPresent());
     }
 
     @Test
@@ -160,5 +176,6 @@ public class UserDaoTest {
         assertEquals(EXTERNAL_ID, user.getProviderId());
         assertEquals(EMAIL, user.getEmail());
         assertEquals(PROVIDER, user.getProvider());
+        assertTrue(user.getNotifyNoArticles());
     }
 }

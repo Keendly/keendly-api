@@ -368,6 +368,44 @@ public class DeliveryDaoTest {
     }
 
     @Test
+    public void given_delivery_when_createDeliveryWithError_then_setErrorDescription() {
+        // given
+        execute(
+            sequenceOf(
+                DELETE_ALL,
+                CREATE_DEFAULT_USER,
+                insertInto("subscription")
+                    .columns("id", "created", "last_modified", "active", "frequency", "time", "timezone", "user_id", "deleted")
+                    .values(2L, "2016-05-21 01:17:17.739", "2016-05-22 01:17:17.739", true, "DAILY", "00:00", "Europe/Madrid", "1", false)
+                    .build()
+            )
+        );
+        Delivery delivery = Delivery.builder()
+            .manual(false)
+            .subscription(Subscription.builder()
+                .id(2L)
+                .build())
+            .error("BOOM!")
+            .items(Arrays.asList(
+                DeliveryItem.builder()
+                    .feedId("feed/http://feeds.feedburner.com/GiantRobotsSmashingIntoOtherGiantRobots")
+                    .title("Giant Robots Smashing Into Other Giant Robots")
+                    .includeImages(true)
+                    .markAsRead(true)
+                    .fullArticle(true)
+                    .build()
+            ))
+            .build();
+
+        // when
+        Long deliveryId = deliveryDao.createDelivery(delivery, 1L);
+
+        // then
+        Delivery inserted = deliveryDao.findById(deliveryId);
+        assertEquals("BOOM!", inserted.getError());
+    }
+
+    @Test
     public void given_delivered_when_setDeliveryFinished_then_deliveryUpdated() {
         // given
         execute(

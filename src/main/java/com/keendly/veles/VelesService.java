@@ -116,9 +116,9 @@ public interface VelesService {
         "                <tr>\n"+
         "                    <td class=\"torTextContent\" style=\"padding-top: 9px;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #606060;font-family: Helvetica;font-size: 15px;line-height: 150%;text-align: left;\" valign=\"top\">\n"+
         "                        Hello,\n"+
-        "                        <br><br>We couldn't find any unread articles in any of the scheduled feeds: {{FEEDS}} So we skipped the delivery this time. If you don't want to receive this kind of notifications, change it in your user settings.<br><br>\n"+
+        "                        <br><br>We couldn't find any unread articles in any of the scheduled feeds: {{FEEDS}} So we skipped delivery this time. If you don't want to receive this kind of notifications, you can change it in your user settings.<br><br>\n"+
         "\n"+
-        "                        <a class=\"button\" href=\"https://app.keendly.com/user\">Go to <b>settings</b></a>\n"+
+        "                        <a class=\"button\" href=\"https://app.keendly.com/settings\">Go to <b>settings</b></a>\n"+
         "\n"+
         "                        <p>Yours sincerely,<br>\n"+
         "                            Keendly Team</p>\n"+

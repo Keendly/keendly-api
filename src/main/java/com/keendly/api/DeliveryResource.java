@@ -19,6 +19,7 @@ import com.keendly.dao.DeliveryDao;
 import com.keendly.dao.UserDao;
 import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
+import com.keendly.model.Subscription;
 import com.keendly.model.User;
 import com.keendly.states.DeliveryRequest;
 import com.keendly.states.Mapper;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -170,6 +172,9 @@ public class DeliveryResource {
                 .manual(false)
                 .error("NO ARTICLES")
                 .items(delivery.getItems())
+                .subscription(Subscription.builder()
+                    .id(delivery.getSubscription().getId())
+                    .build())
                 .build();
             deliveryDAO.createDelivery(toInsert, userId);
 
@@ -239,9 +244,29 @@ public class DeliveryResource {
 
     @PATCH
     @Path("/{id}")
-    public Response updateDelivery(@PathParam("id") String id, Delivery delivery) {
+    public Response updateDelivery(@Context SecurityContext securityContext,
+        @PathParam("id") String id, Delivery delivery) {
         // only setting deliveryDate or error supported
         deliveryDAO.setDeliveryFinished(Long.parseLong(id), delivery.getDeliveryDate(), delivery.getError());
+
+        // dont mark as read in case of error
+        if (delivery.getError() != null) {
+            return Response.ok().build();
+        }
+
+        List<String> feedsToMarkAsRead = new ArrayList<>();
+        Delivery stored = deliveryDAO.findById(Long.parseLong(id));
+        for (DeliveryItem item : stored.getItems()) {
+            if (item.getMarkAsRead()) {
+                feedsToMarkAsRead.add(item.getFeedId());
+            }
+        }
+
+        if (!feedsToMarkAsRead.isEmpty()) {
+            Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+            Adaptor adaptor = AdaptorFactory.getInstance(userDAO.findById(userId));
+            adaptor.markFeedRead(feedsToMarkAsRead, delivery.getDeliveryDate().getTime());
+        }
         return Response.ok().build();
     }
 }

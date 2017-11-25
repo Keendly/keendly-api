@@ -46,7 +46,7 @@ public class UserDao {
                     .bind("provider", provider)
                     .first();
 
-            if (map.isEmpty()) {
+            if (map == null || map.isEmpty()) {
                 return Optional.empty();
             } else {
                 return Optional.of(toUser(map));
@@ -105,7 +105,7 @@ public class UserDao {
         Date now = new Date();
         try (Handle handle  = getDB(environment).open()) {
             Long id = nextId(handle);
-            handle.createStatement("insert into keendlyuser (id, provider_id, provider, email, created, last_modified) values (:id, :providerId, :provider, :email, :now, :now)")
+            handle.createStatement("insert into keendlyuser (id, provider_id, provider, email, created, last_modified, notify_no_articles) values (:id, :providerId, :provider, :email, :now, :now, true)")
                 .bind("id", id)
                 .bind("providerId", externalId)
                 .bind("provider", provider)

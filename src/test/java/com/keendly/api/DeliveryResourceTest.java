@@ -20,6 +20,7 @@ import com.keendly.dao.UserDao;
 import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
 import com.keendly.model.Provider;
+import com.keendly.model.Subscription;
 import com.keendly.model.User;
 import com.keendly.veles.VelesRequest;
 import com.keendly.veles.VelesService;
@@ -252,6 +253,7 @@ public class DeliveryResourceTest {
             .build();
         Response response = createDelivery(Delivery.builder()
             .items(Arrays.asList(feed))
+            .subscription(Subscription.builder().id(1L).build())
             .manual(false)
             .build());
 
@@ -261,6 +263,7 @@ public class DeliveryResourceTest {
         ArgumentCaptor<Delivery> deliveryArgumentCaptor = ArgumentCaptor.forClass(Delivery.class);
         verify(deliveryDao).createDelivery(deliveryArgumentCaptor.capture(), eq(USER_ID));
         assertEquals("NO ARTICLES", deliveryArgumentCaptor.getValue().getError());
+        assertEquals(1L, deliveryArgumentCaptor.getValue().getSubscription().getId().longValue());
     }
 
     @Test
@@ -285,6 +288,7 @@ public class DeliveryResourceTest {
             .build();
         Response response = createDelivery(Delivery.builder()
             .items(Arrays.asList(feed))
+            .subscription(Subscription.builder().id(1L).build())
             .manual(false)
             .build());
 

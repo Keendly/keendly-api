@@ -181,12 +181,13 @@ public class DeliveryDao {
             Long deliveryId = nextId(handle);
             Date now = new Date();
 
-            handle.createStatement("insert into delivery (id, created, last_modified, manual, user_id, subscription_id) values (:id, :now, :now, :manual, :userId, :subscriptionId)")
+            handle.createStatement("insert into delivery (id, created, last_modified, manual, user_id, subscription_id, errordescription) values (:id, :now, :now, :manual, :userId, :subscriptionId, :error)")
                 .bind("id", deliveryId)
                 .bind("manual", delivery.getManual())
                 .bind("now", now)
                 .bind("userId", userId)
                 .bind("subscriptionId", delivery.getSubscription() != null ? delivery.getSubscription().getId() : null)
+                .bind("error", delivery.getError())
                 .execute();
 
             for (DeliveryItem item : delivery.getItems()) {
