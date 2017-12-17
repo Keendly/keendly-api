@@ -1,6 +1,11 @@
 package com.keendly.api;
 
+import static com.keendly.utils.ConfigUtils.parameter;
+
 import com.amazonaws.util.StringUtils;
+import com.braintreegateway.BraintreeGateway;
+import com.braintreegateway.ClientTokenRequest;
+import com.braintreegateway.Environment;
 import com.keendly.dao.UserDao;
 import com.keendly.model.User;
 
@@ -19,6 +24,11 @@ public class UserResource {
     private static final String[] ALLOWED_DOMAINS = {"kindle.com", "free.kindle.com", "kindle.cn", "pbsync.com"};
 
     private UserDao userDAO = new UserDao();
+    private BraintreeGateway gateway = BraintreeGateway.forPartner(
+        parameter("BRAINTREE_ENV").equals("PRODUCTION") ? Environment.PRODUCTION : Environment.SANDBOX,
+        parameter("BRAINTREE_PARTNER_ID"),
+        parameter("BRAINTREE_PUBLIC_KEY"),
+        parameter("BRAINTREE_PRIVATE_KEY"));
 
     @GET
     @Path("/self")
@@ -64,6 +74,16 @@ public class UserResource {
             .build());
 
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/self/token")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getClientToken(@Context SecurityContext securityContext) {
+        String token = gateway.clientToken()
+            .generate(new ClientTokenRequest().customerId(securityContext.getUserPrincipal().getName()));
+
+        return Response.ok(token).build();
     }
 
     private boolean validateDeliveryEmail(String email){
