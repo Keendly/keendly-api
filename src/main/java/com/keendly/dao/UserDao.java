@@ -4,16 +4,19 @@ import static com.keendly.utils.DbUtils.*;
 
 import com.keendly.adaptor.model.auth.Token;
 import com.keendly.model.Provider;
+import com.keendly.model.PushSubscription;
 import com.keendly.model.User;
 import org.skife.jdbi.v2.Handle;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Date;
+import java.util.stream.Collectors;
 
 public class UserDao {
 
-    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token from keendlyuser";
+    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token, premium_subscription_id from keendlyuser";
 
     private Environment environment;
 
@@ -33,7 +36,7 @@ public class UserDao {
                     .bind("id", id)
                     .first();
 
-            return toUser(map);
+            return toUser(map, getPushSubscriptions(id));
         }
     }
 
@@ -49,12 +52,12 @@ public class UserDao {
             if (map == null || map.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(toUser(map));
+                return Optional.of(toUser(map, null));
             }
         }
     }
 
-    private static User toUser(Map<String, Object> map) {
+    private static User toUser(Map<String, Object> map, List<PushSubscription> pushSubscriptions) {
         return User.builder()
             .id((Long) map.get("id"))
             .provider(Provider.valueOf((String) map.get("provider")))
@@ -65,6 +68,43 @@ public class UserDao {
             .notifyNoArticles((Boolean) map.get("notify_no_articles"))
             .accessToken((String) map.get("access_token"))
             .refreshToken((String) map.get("refresh_token"))
+            .premiumSubscriptionId((String) map.get("premium_subscription_id"))
+            .pushSubscriptions(pushSubscriptions)
+            .build();
+    }
+
+    private List<PushSubscription> getPushSubscriptions(long userId) {
+        try (Handle handle = getDB(environment).open()) {
+
+            List<Map<String, Object>> map =
+                handle.createQuery("select id, endpoint, auth, key from pushsubscription ps where ps.user_id = :id")
+                    .bind("id", userId)
+                    .list();
+
+            return map.stream().map(UserDao::toPushSubscription).collect(Collectors.toList());
+        }
+    }
+
+    public Long addPushSubscription(long userId, PushSubscription subscription) {
+        try (Handle handle = getDB(environment).open()) {
+            Long id = nextId(handle);
+            handle.createStatement("insert into pushsubscription (id, user_id, endpoint, key, auth) values (:id, :userId, :endpoint, :key, :auth)")
+                .bind("id", id)
+                .bind("userId", userId)
+                .bind("endpoint", subscription.getEndpoint())
+                .bind("auth", subscription.getAuth())
+                .bind("key", subscription.getKey())
+                .execute();
+            return id;
+        }
+    }
+
+    private static PushSubscription toPushSubscription(Map<String, Object> map) {
+        return PushSubscription.builder()
+            .id((Long) map.get("id"))
+            .auth((String) map.get("auth"))
+            .endpoint((String) map.get("endpoint"))
+            .key((String) map.get("key"))
             .build();
     }
 
@@ -113,6 +153,23 @@ public class UserDao {
                 .bind("now", now)
                 .execute();
             return id;
+        }
+    }
+
+    public void setPremiumSubscriptionId(Long id, String subscriptionId) {
+        try (Handle handle  = getDB(environment).open()) {
+            handle.createStatement("update keendlyuser set premium_subscription_id = :subscriptionId where id = :userId")
+                .bind("userId", id)
+                .bind("subscriptionId", subscriptionId)
+                .execute();
+        }
+    }
+
+    public void deletePremiumSubscriptionId(Long id) {
+        try (Handle handle  = getDB(environment).open()) {
+            handle.createStatement("update keendlyuser set premium_subscription_id = null where id = :userId")
+                .bind("userId", id)
+                .execute();
         }
     }
 }

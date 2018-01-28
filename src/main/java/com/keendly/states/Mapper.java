@@ -54,6 +54,7 @@ public class Mapper {
             .provider(user.getProvider())
             .s3Items(s3Items)
             .dryRun(dryRun)
+            .manual(delivery.getManual())
             .build();
     }
 }

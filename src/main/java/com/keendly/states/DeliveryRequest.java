@@ -19,4 +19,5 @@ public class DeliveryRequest {
     private S3Object s3Items;
     private boolean dryRun;
     private String timezone;
+    private boolean manual;
 }

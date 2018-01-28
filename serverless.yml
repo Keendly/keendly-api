@@ -51,7 +51,7 @@ functions:
   api:
     role: arn:aws:iam::625416862388:role/lambda_s3_exec_role
     memorySize: 512
-    timeout: 30
+    timeout: 60
     handler: com.keendly.api.RequestHandler
     environment:
       DB_URL: ${env:DB_URL}
@@ -69,6 +69,10 @@ functions:
       NEWSBLUR_CLIENT_ID: ${env:NEWSBLUR_CLIENT_ID}
       NEWSBLUR_CLIENT_SECRET: ${env:NEWSBLUR_CLIENT_SECRET}
       NEWSBLUR_REDIRECT_URI: ${env:NEWSBLUR_REDIRECT_URI}
+      BRAINTREE_ENV: ${env:BRAINTREE_ENV}
+      BRAINTREE_PARTNER_ID: ${env:BRAINTREE_PARTNER_ID}
+      BRAINTREE_PUBLIC_KEY: ${env:BRAINTREE_PUBLIC_KEY}
+      BRAINTREE_PRIVATE_KEY: ${env:BRAINTREE_PRIVATE_KEY}
     events:
       - http:
           path: /login

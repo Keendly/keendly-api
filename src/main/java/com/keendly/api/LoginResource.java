@@ -105,10 +105,12 @@ public class LoginResource {
         case BEARER:
             Optional<String> clientSecret = clientDAO.findClientSecret(request.getClientId());
             if (!clientSecret.isPresent()) {
+                LOG.error("Couldn't find client with id: {}", request.getClientId());
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
             Optional<Integer> userId = decode(request.getToken(), clientSecret.get());
             if (!userId.isPresent()) {
+                LOG.error("Couldn't find userId in token {}", request.getToken());
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
             String authToken = generate(Long.valueOf(userId.get()), grantType.expiresIn);

@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 
 import com.keendly.adaptor.model.auth.Token;
 import com.keendly.model.Provider;
+import com.keendly.model.PushSubscription;
 import com.keendly.model.User;
 import com.keendly.utils.DbUtils;
 import com.ninja_squad.dbsetup.operation.Operation;
@@ -17,6 +18,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class UserDaoTest {
@@ -24,7 +27,7 @@ public class UserDaoTest {
     @ClassRule
     public static PostgreSQLContainer database = new PostgreSQLContainer();
 
-    private final static String TABLE = "keendlyuser";
+    private final static String[] TABLES = {"keendlyuser", "pushsubscription"};
 
     private UserDao userDao = new UserDao(DbUtils.Environment.builder()
         .url(database.getJdbcUrl())
@@ -43,6 +46,7 @@ public class UserDaoTest {
 
         c.createStatement().execute(DDL.CREATE_USER.sql());
         c.createStatement().execute(DDL.CREATE_SEQUENCE.sql());
+        c.createStatement().execute(DDL.CREATE_PUSH_SUBSCRIPTION.sql());
 
         c.close();
     }
@@ -52,9 +56,15 @@ public class UserDaoTest {
         Connection c =
             DriverManager.getConnection(database.getJdbcUrl(), database.getUsername(), database.getPassword());
 
-        c.createStatement().execute("drop table " + TABLE);
-        c.createStatement().execute("drop sequence hibernate_sequence");
+        Arrays.asList(TABLES).forEach(t -> {
+            try {
+                c.createStatement().execute("drop table " + t);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
 
+        c.createStatement().execute("drop sequence hibernate_sequence");
         c.close();
     }
 
@@ -68,7 +78,7 @@ public class UserDaoTest {
         // given
         execute(
             sequenceOf(
-                deleteAllFrom(TABLE),
+                deleteAllFrom("pushsubscription", "keendlyuser"),
                 insertInto("keendlyuser")
                     .columns("id", "provider", "provider_id")
                     .values(1L, "INOREADER", "123")
@@ -95,7 +105,7 @@ public class UserDaoTest {
         // given
         execute(
             sequenceOf(
-                deleteAllFrom(TABLE),
+                deleteAllFrom("pushsubscription", "keendlyuser"),
                 insertInto("keendlyuser")
                     .columns("id", "provider", "provider_id")
                     .values(1L, "INOREADER", "123")
@@ -115,7 +125,7 @@ public class UserDaoTest {
         // given
         execute(
             sequenceOf(
-                deleteAllFrom(TABLE)
+                deleteAllFrom("pushsubscription", "keendlyuser")
             )
         );
 
@@ -134,7 +144,7 @@ public class UserDaoTest {
         // given
         execute(
             sequenceOf(
-                deleteAllFrom(TABLE),
+                deleteAllFrom("pushsubscription", "keendlyuser"),
                 insertInto("keendlyuser")
                     .columns("id", "provider", "provider_id")
                     .values(1L, "INOREADER", "123")
@@ -163,7 +173,7 @@ public class UserDaoTest {
         // given
         execute(
             sequenceOf(
-                deleteAllFrom(TABLE)
+                deleteAllFrom("pushsubscription", "keendlyuser")
             )
         );
 
@@ -177,5 +187,77 @@ public class UserDaoTest {
         assertEquals(EMAIL, user.getEmail());
         assertEquals(PROVIDER, user.getProvider());
         assertTrue(user.getNotifyNoArticles());
+    }
+
+    @Test
+    public void when_setPremiumSubscriptionId_subscriptionIdSet() {
+        String premiumSubscriptionId = "987654321";
+
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom("pushsubscription", "keendlyuser"),
+                insertInto("keendlyuser")
+                    .columns("id", "provider", "provider_id")
+                    .values(1L, "INOREADER", "123")
+                    .build()
+            )
+        );
+
+        // when
+        userDao.setPremiumSubscriptionId(1L, premiumSubscriptionId);
+
+        // then
+        User user = userDao.findById(1L);
+        assertEquals(premiumSubscriptionId, user.getPremiumSubscriptionId());
+    }
+
+    @Test
+    public void when_deletePremiumSubscriptionId_subscriptionIdRemoved() {
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom("pushsubscription", "keendlyuser"),
+                insertInto("keendlyuser")
+                    .columns("id", "provider", "provider_id", "premium_subscription_id")
+                    .values(1L, "INOREADER", "123", "9876")
+                    .build()
+            )
+        );
+
+        // when
+        userDao.deletePremiumSubscriptionId(1L);
+
+        // then
+        User user = userDao.findById(1L);
+        assertNull(user.getPremiumSubscriptionId());
+    }
+
+    @Test
+    public void when_addPushSubscription_subscriptionAdded() {
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom("pushsubscription", "keendlyuser"),
+                insertInto("keendlyuser")
+                    .columns("id", "provider", "provider_id", "premium_subscription_id")
+                    .values(1L, "INOREADER", "123", "9876")
+                    .build()
+            )
+        );
+
+        // when
+        userDao.addPushSubscription(1L, PushSubscription.builder()
+            .auth("auth")
+            .key("key")
+            .endpoint("endpoint")
+            .build());
+
+        // then
+        User user = userDao.findById(1L);
+        assertEquals(1, user.getPushSubscriptions().size());
+        PushSubscription subscription = user.getPushSubscriptions().get(0);
+        assertEquals("auth", subscription.getAuth());
+        assertEquals("endpoint", subscription.getEndpoint());
     }
 }

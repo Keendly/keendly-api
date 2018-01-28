@@ -1,16 +1,28 @@
 package com.keendly.api;
 
-import static com.keendly.utils.ConfigUtils.parameter;
+import static com.keendly.utils.ConfigUtils.*;
 
 import com.amazonaws.util.StringUtils;
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.ClientTokenRequest;
+import com.braintreegateway.Customer;
+import com.braintreegateway.CustomerRequest;
 import com.braintreegateway.Environment;
+import com.braintreegateway.PaymentMethod;
+import com.braintreegateway.PaymentMethodRequest;
+import com.braintreegateway.Result;
+import com.braintreegateway.Subscription;
+import com.braintreegateway.SubscriptionRequest;
+import com.braintreegateway.exceptions.NotFoundException;
 import com.keendly.dao.UserDao;
+import com.keendly.model.PremiumRequest;
+import com.keendly.model.PushSubscription;
 import com.keendly.model.User;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -45,6 +57,8 @@ public class UserResource {
                 .deliveryEmail(user.getDeliveryEmail())
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())
+                .isPremium(user.getPremiumSubscriptionId() != null)
+                .pushSubscriptions(user.getPushSubscriptions())
                 .build())
             .build();
     }
@@ -86,6 +100,58 @@ public class UserResource {
         return Response.ok(token).build();
     }
 
+    @POST
+    @Path("/self/premium")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response goPremium(@Context SecurityContext securityContext, PremiumRequest request) {
+        String userId = securityContext.getUserPrincipal().getName();
+        String paymentToken;
+        if (!braintreeCustomerExists(userId)) {
+            paymentToken = createBraintreeCustomerWithPayment(userId, request.getNonce());
+        } else {
+            paymentToken = createPayment(userId, request.getNonce());
+        }
+
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest()
+            .paymentMethodToken(paymentToken)
+            .planId(request.getPlainId());
+
+        Result<Subscription> result = gateway.subscription().create(subscriptionRequest);
+
+        if (result.isSuccess()) {
+            String subscriptionId = result.getTarget().getId();
+            userDAO.setPremiumSubscriptionId(Long.parseLong(userId), subscriptionId);
+        }
+        return Response.ok().build();
+    }
+
+    @DELETE
+    @Path("/self/premium")
+    public Response deletePremium(@Context SecurityContext securityContext) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        String subscriptionId = userDAO.findById(userId).getPremiumSubscriptionId();
+        Result<Subscription> result = gateway.subscription().cancel(subscriptionId);
+        if (result.isSuccess()) {
+            userDAO.deletePremiumSubscriptionId(userId);
+            return Response.ok().build();
+        } else {
+            throw new RuntimeException("Couldn't cancel subscription :(");
+        }
+    }
+
+    @POST
+    @Path("/self/pushsubscriptions")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response addPushSubscription(@Context SecurityContext securityContext, PushSubscription subscription) {
+        Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
+        Long id = userDAO.addPushSubscription(userId, subscription);
+        return Response.status(Response.Status.CREATED)
+            .entity(PushSubscription.builder()
+                .id(id)
+                .build())
+            .build();
+    }
+
     private boolean validateDeliveryEmail(String email){
         String[] split = email.split("\\@");
         if (split.length != 2){
@@ -104,5 +170,40 @@ public class UserResource {
     private String generateSenderEmail(String deliveryEmail){
         String[] split = deliveryEmail.split("\\@");
         return split[0] + "@keendly.com";
+    }
+
+    private boolean braintreeCustomerExists(String id) {
+        try {
+            gateway.customer().find(id);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
+    private String createBraintreeCustomerWithPayment(String userId, String paymentOnce) {
+        CustomerRequest request = new CustomerRequest()
+            .id(userId)
+            .paymentMethodNonce(paymentOnce);
+        Result<Customer> result = gateway.customer().create(request);
+        if (result.isSuccess()) {
+            return result.getTarget().getPaymentMethods().get(0).getToken();
+        } else {
+            throw new RuntimeException("Couldn't create braintree user :(");
+        }
+    }
+
+    private String createPayment(String userId, String paymentOnce) {
+        PaymentMethodRequest request = new PaymentMethodRequest()
+            .customerId(userId)
+            .paymentMethodNonce(paymentOnce);
+
+        Result<? extends PaymentMethod> result = gateway.paymentMethod().create(request);
+
+        if (result.isSuccess()) {
+            return result.getTarget().getToken();
+        } else {
+            throw new RuntimeException("Couldn't create braintree payment :(");
+        }
     }
 }

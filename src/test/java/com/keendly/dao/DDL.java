@@ -15,6 +15,7 @@ public enum DDL {
         + "refresh_token CHARACTER VARYING(1000), "
         + "delivery_sender CHARACTER VARYING(255), "
         + "notify_no_articles BOOLEAN, "
+        + "premium_subscription_id CHARACTER VARYING(100), "
         + "PRIMARY KEY (id), "
         + "CONSTRAINT uk_6vhj1cwggrr6dy1sxskrbt0y4 UNIQUE (provider, provider_id));"),
 
@@ -80,7 +81,16 @@ public enum DDL {
         + "client_secret CHARACTER VARYING(255) NOT NULL, "
         + "name CHARACTER VARYING(255) NOT NULL, "
         + "PRIMARY KEY (id), "
-        + "UNIQUE (client_id));");
+        + "UNIQUE (client_id));"),
+
+    CREATE_PUSH_SUBSCRIPTION("CREATE TABLE pushsubscription ("
+        +" id BIGINT NOT NULL,"
+        +" user_id BIGINT NOT NULL,"
+        +" auth CHARACTER VARYING(255),"
+        +" key CHARACTER VARYING(255),"
+        +" endpoint CHARACTER VARYING(1024),"
+        +" CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES keendlyuser (id)"
+        +")");
 
     private String sql;
 
