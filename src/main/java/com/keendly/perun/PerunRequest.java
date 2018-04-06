@@ -1,11 +1,11 @@
-package com.keendly.veles;
+package com.keendly.perun;
 
 import lombok.Builder;
 import lombok.Value;
 
 @Builder
 @Value
-public class VelesRequest {
+public class PerunRequest {
 
     private String subject;
     private String sender;

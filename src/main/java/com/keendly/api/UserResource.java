@@ -24,6 +24,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -57,7 +58,10 @@ public class UserResource {
                 .deliveryEmail(user.getDeliveryEmail())
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())
-                .isPremium(user.getPremiumSubscriptionId() != null)
+                .isPremium(
+                    user.getPremiumSubscriptionId() != null &&
+                    gateway.subscription().find(user.getPremiumSubscriptionId()).getStatus() == Subscription.Status.ACTIVE
+                )
                 .pushSubscriptions(user.getPushSubscriptions())
                 .build())
             .build();
@@ -150,6 +154,14 @@ public class UserResource {
                 .id(id)
                 .build())
             .build();
+    }
+
+    @DELETE
+    @Path("/self/pushsubscriptions/{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response deletePushSubscription(@Context SecurityContext securityContext, @PathParam("id") String id) {
+        userDAO.deletePremiumSubscriptionId(Long.valueOf(id));
+        return Response.ok().build();
     }
 
     private boolean validateDeliveryEmail(String email){

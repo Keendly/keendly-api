@@ -22,8 +22,8 @@ import com.keendly.model.DeliveryItem;
 import com.keendly.model.Provider;
 import com.keendly.model.Subscription;
 import com.keendly.model.User;
-import com.keendly.veles.VelesRequest;
-import com.keendly.veles.VelesService;
+import com.keendly.perun.PerunRequest;
+import com.keendly.perun.PerunService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,12 +56,12 @@ public class DeliveryResourceTest {
     private DeliveryDao deliveryDao = mock(DeliveryDao.class);
     private AmazonS3 amazonS3 = mock(AmazonS3.class);
     private AWSStepFunctions awsStepFunctions = mock(AWSStepFunctions.class);
-    private VelesService velesService = mock(VelesService.class);
+    private PerunService perunService = mock(PerunService.class);
     
     private Adaptor adaptor = mock(Adaptor.class);
     
     private DeliveryResource deliveryResource = 
-        new DeliveryResource(deliveryDao, userDao, amazonS3, awsStepFunctions, velesService);
+        new DeliveryResource(deliveryDao, userDao, amazonS3, awsStepFunctions, perunService);
     
     @Before
     public void setUp() {
@@ -294,8 +294,8 @@ public class DeliveryResourceTest {
 
         // then
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        ArgumentCaptor<VelesRequest> velesRequestArgumentCaptor = ArgumentCaptor.forClass(VelesRequest.class);
-        verify(velesService).sendEmail(velesRequestArgumentCaptor.capture());
+        ArgumentCaptor<PerunRequest> velesRequestArgumentCaptor = ArgumentCaptor.forClass(PerunRequest.class);
+        verify(perunService).sendEmail(velesRequestArgumentCaptor.capture());
         assertEquals("user@mail.com", velesRequestArgumentCaptor.getValue().getRecipient());
     }
     

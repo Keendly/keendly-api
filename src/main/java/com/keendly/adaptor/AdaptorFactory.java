@@ -1,5 +1,6 @@
 package com.keendly.adaptor;
 
+import com.keendly.adaptor.feedly.FeedlyAdaptor;
 import com.keendly.adaptor.inoreader.InoreaderAdaptor;
 import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
@@ -18,6 +19,7 @@ public class AdaptorFactory {
         ADAPTORS.put(Provider.OLDREADER, OldReaderAdaptor.class);
         ADAPTORS.put(Provider.INOREADER, InoreaderAdaptor.class);
         ADAPTORS.put(Provider.NEWSBLUR, NewsblurAdaptor.class);
+        ADAPTORS.put(Provider.FEEDLY, FeedlyAdaptor.class);
     }
 
     public static Adaptor getInstance(Provider provider, Credentials credentials){

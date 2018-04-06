@@ -77,7 +77,7 @@ public class UserDao {
         try (Handle handle = getDB(environment).open()) {
 
             List<Map<String, Object>> map =
-                handle.createQuery("select id, endpoint, auth, key from pushsubscription ps where ps.user_id = :id")
+                handle.createQuery("select id, endpoint, auth, key from pushsubscription ps where ps.user_id = :id and ps.deleted = FALSE")
                     .bind("id", userId)
                     .list();
 
@@ -88,7 +88,7 @@ public class UserDao {
     public Long addPushSubscription(long userId, PushSubscription subscription) {
         try (Handle handle = getDB(environment).open()) {
             Long id = nextId(handle);
-            handle.createStatement("insert into pushsubscription (id, user_id, endpoint, key, auth) values (:id, :userId, :endpoint, :key, :auth)")
+            handle.createStatement("insert into pushsubscription (id, user_id, endpoint, key, auth, deleted) values (:id, :userId, :endpoint, :key, :auth, FALSE)")
                 .bind("id", id)
                 .bind("userId", userId)
                 .bind("endpoint", subscription.getEndpoint())
@@ -96,6 +96,14 @@ public class UserDao {
                 .bind("key", subscription.getKey())
                 .execute();
             return id;
+        }
+    }
+
+    public void deletePushSubscription(long pushSubscriptionId) {
+        try (Handle handle = getDB(environment).open()) {
+            handle.createStatement("update pushsubscription set deleted = true where id = :id")
+                .bind("id", pushSubscriptionId)
+                .execute();
         }
     }
 

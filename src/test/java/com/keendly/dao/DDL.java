@@ -89,6 +89,7 @@ public enum DDL {
         +" auth CHARACTER VARYING(255),"
         +" key CHARACTER VARYING(255),"
         +" endpoint CHARACTER VARYING(1024),"
+        + "deleted BOOLEAN NOT NULL, "
         +" CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES keendlyuser (id)"
         +")");
 

@@ -260,4 +260,30 @@ public class UserDaoTest {
         assertEquals("auth", subscription.getAuth());
         assertEquals("endpoint", subscription.getEndpoint());
     }
+
+    @Test
+    public void when_deletePushSubscription_pushSubscriptionDeleted() {
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom("pushsubscription", "keendlyuser"),
+                insertInto("keendlyuser")
+                    .columns("id", "provider", "provider_id", "premium_subscription_id")
+                    .values(1L, "INOREADER", "123", "9876")
+                    .build()
+            )
+        );
+
+        userDao.addPushSubscription(1L, PushSubscription.builder()
+            .auth("auth")
+            .key("key")
+            .endpoint("endpoint")
+            .build());
+
+        // when
+        userDao.deletePushSubscription(1L);
+
+        // then
+        assertTrue(userDao.findById(1L).getPushSubscriptions().isEmpty());
+    }
 }

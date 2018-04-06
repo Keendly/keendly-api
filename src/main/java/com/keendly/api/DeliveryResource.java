@@ -24,8 +24,8 @@ import com.keendly.model.User;
 import com.keendly.states.DeliveryRequest;
 import com.keendly.states.Mapper;
 import com.keendly.states.S3Object;
-import com.keendly.veles.VelesRequest;
-import com.keendly.veles.VelesService;
+import com.keendly.perun.PerunRequest;
+import com.keendly.perun.PerunService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,31 +55,31 @@ public class DeliveryResource {
     private static int MAX_FEEDS_IN_DELIVERY = 25;
     private static int MAX_ARTICLES_IN_DELIVERY = 500;
     private static String BUCKET = "keendly";
-    private static final String STATE_MACHINE_ARN = "arn:aws:states:eu-west-1:625416862388:stateMachine:Delivery2";
+    private static final String STATE_MACHINE_ARN = "arn:aws:states:eu-west-1:625416862388:stateMachine:Delivery";
 
     private DeliveryDao deliveryDAO;
     private UserDao userDAO;
     private AmazonS3 amazonS3Client;
     private AWSStepFunctions awsStepFunctionsClient;
-    private VelesService velesService;
+    private PerunService perunService;
 
     public DeliveryResource() {
         this.deliveryDAO = new DeliveryDao();
         this.userDAO = new UserDao();
         this.amazonS3Client = new AmazonS3Client();
         this.awsStepFunctionsClient = getStepFunctionsClient();
-        this.velesService = LambdaInvokerFactory.builder()
+        this.perunService = LambdaInvokerFactory.builder()
             .lambdaClient(AWSLambdaClientBuilder.defaultClient())
-            .build(VelesService.class);
+            .build(PerunService.class);
     }
     
     public DeliveryResource(DeliveryDao deliveryDao, UserDao userDao, 
-        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions, VelesService velesService) {
+        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions, PerunService perunService) {
         this.deliveryDAO = deliveryDao;
         this.userDAO = userDao;
         this.amazonS3Client = amazonS3;
         this.awsStepFunctionsClient = awsStepFunctions;
-        this.velesService = velesService;
+        this.perunService = perunService;
     }
     
     private AWSStepFunctions getStepFunctionsClient() {
@@ -180,14 +180,14 @@ public class DeliveryResource {
 
             if (user.getNotifyNoArticles()) {
                 LOG.debug("Notifications on no articles enabled, sending email to {}", user.getEmail());
-                VelesRequest velesRequest = VelesRequest.builder()
+                PerunRequest perunRequest = PerunRequest.builder()
                     .sender("contact@keendly.com")
                     .senderName("Keendly Support")
                     .subject("There was nothing to deliver this time")
                     .recipient(user.getEmail())
                     .message(noArticlesEmailMessage(delivery))
                     .build();
-                velesService.sendEmail(velesRequest);
+                perunService.sendEmail(perunRequest);
             }
             return Response.ok(toInsert).build();
         }
@@ -239,7 +239,7 @@ public class DeliveryResource {
             sb.append("</li>");
         }
         sb.append("</ul>");
-        return VelesService.TEMPLATE.replace("{{FEEDS}}", sb.toString());
+        return PerunService.TEMPLATE.replace("{{FEEDS}}", sb.toString());
     }
 
     @PATCH

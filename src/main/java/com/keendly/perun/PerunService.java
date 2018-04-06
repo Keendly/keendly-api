@@ -1,8 +1,8 @@
-package com.keendly.veles;
+package com.keendly.perun;
 
 import com.amazonaws.services.lambda.invoke.LambdaFunction;
 
-public interface VelesService {
+public interface PerunService {
 
     String TEMPLATE = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head>\n"+
         "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n"+
@@ -134,5 +134,5 @@ public interface VelesService {
         "</body></html>";
 
     @LambdaFunction(functionName="perun_swf")
-    String sendEmail(VelesRequest input);
+    String sendEmail(PerunRequest input);
 }
