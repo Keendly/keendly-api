@@ -18,6 +18,8 @@ import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -29,6 +31,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -233,12 +236,13 @@ public class FeedlyAdaptor extends Adaptor {
                 }
                 if (articleUrl != null) {
                     FeedEntry entry = new FeedEntry();
+                    String content = extractContent(item);
                     entry.setId(asText(item, "id"));
                     entry.setUrl(articleUrl);
-                    entry.setTitle(asText(item, "title"));
+                    entry.setTitle(getTitle(item, content));
                     entry.setAuthor(asText(item, "author"));
                     entry.setPublished(asDate(item, "published"));
-                    entry.setContent(extractContent(item));
+                    entry.setContent(content);
                     entries.add(entry);
                 }
                 if (entries.size() >= count) {
@@ -259,6 +263,25 @@ public class FeedlyAdaptor extends Adaptor {
             }
         }
         return ret;
+    }
+
+    protected static Date asDate(JsonNode node, String field){
+        JsonNode j = node.get(field);
+        if (j != null){
+            Date d = new Date();
+            d.setTime(j.asLong());
+            return d;
+        }
+        return null;
+    }
+
+    private static String getTitle(JsonNode node, String content) {
+        String title = asText(node, "title");
+        if (title != null) {
+            return title;
+        }
+        String cleanContent = Jsoup.clean(content, Whitelist.none());
+        return cleanContent.substring(0, 70) + "...";
     }
 
     private static String urlEncode(String s){

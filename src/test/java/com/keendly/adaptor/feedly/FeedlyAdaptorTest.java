@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -337,8 +338,8 @@ public class FeedlyAdaptorTest {
         // then
         assertTrue(unread.containsKey(FEED_ID));
         assertEquals(2, unread.get(FEED_ID).size());
-        assertEntryCorrect(unread.get(FEED_ID).get(0), ID1, TITLE1, AUTHOR1, PUBLISHED1, URL1, CONTENT1);
-        assertEntryCorrect(unread.get(FEED_ID).get(1), ID2, TITLE2, AUTHOR2, PUBLISHED2, URL2, CONTENT2);
+        assertEntryCorrect(unread.get(FEED_ID).get(0), ID1, TITLE1, AUTHOR1, PUBLISHED1, URL1, CONTENT1, true);
+        assertEntryCorrect(unread.get(FEED_ID).get(1), ID2, TITLE2, AUTHOR2, PUBLISHED2, URL2, CONTENT2, true);
 
         verify(getRequestedFor(urlPathEqualTo("/streams/" + ESCAPED_FEED_ID + "/contents"))
             .withHeader("Authorization", equalTo("Bearer " + ACCESS_TOKEN)));
@@ -406,8 +407,8 @@ public class FeedlyAdaptorTest {
         // then
         assertTrue(unread.containsKey(FEED_ID));
         assertEquals(2, unread.get(FEED_ID).size());
-        assertEntryCorrect(unread.get(FEED_ID).get(0), ID1, TITLE1, AUTHOR1, PUBLISHED1, URL1, CONTENT1);
-        assertEntryCorrect(unread.get(FEED_ID).get(1), ID2, TITLE2, AUTHOR2, PUBLISHED2, URL2, CONTENT2);
+        assertEntryCorrect(unread.get(FEED_ID).get(0), ID1, TITLE1, AUTHOR1, PUBLISHED1, URL1, CONTENT1, true);
+        assertEntryCorrect(unread.get(FEED_ID).get(1), ID2, TITLE2, AUTHOR2, PUBLISHED2, URL2, CONTENT2, true);
 
         verify(getRequestedFor(urlPathEqualTo("/streams/" + ESCAPED_FEED_ID + "/contents"))
             .withHeader("Authorization", equalTo("Bearer " + ACCESS_TOKEN)));
@@ -696,6 +697,30 @@ public class FeedlyAdaptorTest {
             .refreshToken(refreshToken)
             .build();
         return new FeedlyAdaptor(token, config());
+    }
+
+    @Test
+    public void test() {
+        Credentials credentials = Credentials.builder()
+            .authorizationCode("A0zS0NbIov4-dWV84WKUtQneOqBMSyy8ZAk_7LWMm09Zg-7V2L7H68Gxf4Jnb9RT1Wl7itT-Uv_qVE1TEtXrE-lISIeakv2zcu8Wd9dybJEEY7YyXGrhCe14iS8D_xFeZxwWj7hxUtfqcByKz5UPOnohVOPxVO6_wJ7fIcdqCYkyS3nc56VHKW_W7g")
+            .build();
+
+        Token t = Token.builder()
+            .accessToken("A_kqJZOUoctdMjBv7WKX7MT2ux9FFfdzr6dSOkDuegLWee4alhlcCq6hYO4Dvo5_QXoYWgIchJa7vKuZkLbqFVQgkehLopNEMgtlw2FKzm1yAGU5lVPgmTNl7SzmxpjzYu7Z3JvBOzfOUpt8VhwKxpuIkpw7cwmLYZk5Oh6dsSAi692hqAuCig3ly5WRPza_A9EAvjTJMlY_vw1bYtigP7CSwrQCsi-UpxK8oLE6YYEs16u6ZQ:keendly")
+            .refreshToken("A5RRaityN4IUDp832kWScP4Fjd9XQdyR0yEzcmkmMOPkiJIl6QVnr20JVSJoHFIYf53qj-x7O-agEvJki8kuiwsM92R_kNcrK7PJQ3LZK0GtiWjSnjpylcxYf8yefEKcN_4Ivi2KtZjGq0mMyLT1nqBNnGBLmWaNZWNA0-q8X7vp_5v-YfCIpU8CqNyl0RJWaT5F9QaOd1JkBC7fI9x5-VV3JDSg9V9mPfBC0qYtvfjqGe7m8ODpiiXU:keendly")
+            .build();
+
+        FeedlyAdaptor adaptor = new FeedlyAdaptor(t, prodConfig());
+
+        List<ExternalFeed> feeds = adaptor.getFeeds();
+//        Map<String, Integer> counts = adaptor.getUnreadCount(Arrays.asList("feed/http://antyweb.pl/feed/", "feed/http://techblog.netflix.com/feeds/posts/default", "feed/http://runtheworld.pl/feed/"));
+        Map<String, List<FeedEntry>> unread = adaptor.getUnread(Arrays.asList("feed/http://warszawskibiegacz.pl/?feed=rss2"));
+
+
+//        adaptor.markFeedRead(Arrays.asList("feed/http://techblog.netflix.com/feeds/posts/default", "feed/http://antyweb.pl/feed/"), System.currentTimeMillis());
+//        String refreshed = adaptor.refreshAccessToken();
+
+        String a = "a";
     }
 
     private static Map<FeedlyAdaptor.FeedlyParam, String> prodConfig(){
