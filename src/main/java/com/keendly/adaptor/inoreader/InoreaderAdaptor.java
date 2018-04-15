@@ -15,18 +15,25 @@ import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class InoreaderAdaptor extends GoogleReaderTypeAdaptor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(InoreaderAdaptor.class);
+
 
     enum InoreaderParam {
         URL,
@@ -180,11 +187,20 @@ public class InoreaderAdaptor extends GoogleReaderTypeAdaptor {
     public Boolean markFeedRead(List<String> feedIds, long timestamp) {
         for (String feedId : feedIds){
             Map<String, String> params = new HashMap<>();
-            params.put("s", feedId);
+            params.put("s", encode(feedId));
             params.put("ts", Long.toString(timestamp * 1000));
             get("/mark-all-as-read", params);
         }
         return Boolean.TRUE;
+    }
+
+    private static String encode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            LOG.error("WTF", e);
+        }
+        return s;
     }
 
     @Override

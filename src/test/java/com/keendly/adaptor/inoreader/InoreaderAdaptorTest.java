@@ -537,7 +537,7 @@ public class InoreaderAdaptorTest {
     public void given_ResponseOK_when_markAsRead_then_ReturnSuccess() throws Exception {
         String ACCESS_TOKEN = "my_token";
         String FEED_ID1 = "feed/http://www.sprengsatz.de/?feed=rss2";
-        String FEED_ID2 = "feed/http://warszawskibiegacz.pl/?feed=rss2";
+        String FEED_ID2 = "feed/http://fulltext.foxhole.work/makefulltextfeed.php?url=sports.espn.go.com%2Fespn%2Frss%2Fnews&max=20&links=preserve";
         long timestamp = System.currentTimeMillis();
 
         // given
