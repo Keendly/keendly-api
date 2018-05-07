@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class UserDao {
 
-    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token, premium_subscription_id from keendlyuser";
+    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token, premium_subscription_id, force_premium from keendlyuser";
 
     private Environment environment;
 
@@ -70,6 +70,7 @@ public class UserDao {
             .refreshToken((String) map.get("refresh_token"))
             .premiumSubscriptionId((String) map.get("premium_subscription_id"))
             .pushSubscriptions(pushSubscriptions)
+            .forcePremium((Boolean) map.get("force_premium"))
             .build();
     }
 

@@ -23,4 +23,5 @@ public class User {
     private String premiumSubscriptionId;
     private boolean isPremium;
     private List<PushSubscription> pushSubscriptions;
+    private boolean forcePremium;
 }

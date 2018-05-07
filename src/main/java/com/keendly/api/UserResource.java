@@ -59,8 +59,9 @@ public class UserResource {
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())
                 .isPremium(
-                    user.getPremiumSubscriptionId() != null &&
-                    gateway.subscription().find(user.getPremiumSubscriptionId()).getStatus() == Subscription.Status.ACTIVE
+                    user.isForcePremium() ||
+                    (user.getPremiumSubscriptionId() != null &&
+                        gateway.subscription().find(user.getPremiumSubscriptionId()).getStatus() == Subscription.Status.ACTIVE)
                 )
                 .pushSubscriptions(user.getPushSubscriptions())
                 .build())
