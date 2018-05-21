@@ -15,6 +15,7 @@ import com.braintreegateway.Subscription;
 import com.braintreegateway.SubscriptionRequest;
 import com.braintreegateway.exceptions.NotFoundException;
 import com.keendly.dao.UserDao;
+import com.keendly.model.Premium;
 import com.keendly.model.PremiumRequest;
 import com.keendly.model.PushSubscription;
 import com.keendly.model.User;
@@ -30,11 +31,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Date;
 
 @Path("/users")
 public class UserResource {
 
-    private static final String[] ALLOWED_DOMAINS = {"kindle.com", "free.kindle.com", "kindle.cn", "pbsync.com"};
+    private static final String[] ALLOWED_DOMAINS = {"kindle.com", "free.kindle.com", "kindle.cn"};
 
     private UserDao userDAO = new UserDao();
     private BraintreeGateway gateway = BraintreeGateway.forPartner(
@@ -58,14 +60,44 @@ public class UserResource {
                 .deliveryEmail(user.getDeliveryEmail())
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())
-                .isPremium(
-                    user.isForcePremium() ||
-                    (user.getPremiumSubscriptionId() != null &&
-                        gateway.subscription().find(user.getPremiumSubscriptionId()).getStatus() == Subscription.Status.ACTIVE)
-                )
+                .premium(mapPremium(user))
                 .pushSubscriptions(user.getPushSubscriptions())
                 .build())
             .build();
+    }
+
+    private Premium mapPremium(User user) {
+        Premium.PremiumBuilder builder = Premium.builder()
+            .active(false);
+        if (user.getForcePremium() != null && user.getForcePremium()) {
+            builder.active(true).cancellable(false);
+            return builder.build();
+        }
+        if (user.getPremiumSubscriptionId() != null) {
+            Subscription subscription;
+            try {
+                 subscription = gateway.subscription().find(user.getPremiumSubscriptionId());
+            } catch (Exception e) {
+                return builder.active(false).build();
+            }
+            if (subscription.getStatus() == Subscription.Status.ACTIVE) {
+                builder.active(true).cancellable(true);
+            }
+            if (subscription.getStatus() == Subscription.Status.CANCELED) {
+                builder.cancellable(false);
+                if (subscription.getPaidThroughDate() != null &&
+                    subscription.getPaidThroughDate().getTime().after(new Date())) {
+                    builder.active(true);
+                    builder.expires(subscription.getPaidThroughDate().getTime());
+                }
+                // still trial
+                if (subscription.getFirstBillingDate().getTime().after(new Date())) {
+                    builder.active(true);
+                    builder.expires(subscription.getFirstBillingDate().getTime());
+                }
+            }
+        }
+        return builder.build();
     }
     
     @PATCH
@@ -126,6 +158,8 @@ public class UserResource {
         if (result.isSuccess()) {
             String subscriptionId = result.getTarget().getId();
             userDAO.setPremiumSubscriptionId(Long.parseLong(userId), subscriptionId);
+        } else {
+            new RuntimeException("Couldn't create subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
         }
         return Response.ok().build();
     }
@@ -137,10 +171,9 @@ public class UserResource {
         String subscriptionId = userDAO.findById(userId).getPremiumSubscriptionId();
         Result<Subscription> result = gateway.subscription().cancel(subscriptionId);
         if (result.isSuccess()) {
-            userDAO.deletePremiumSubscriptionId(userId);
             return Response.ok().build();
         } else {
-            throw new RuntimeException("Couldn't cancel subscription :(");
+            throw new RuntimeException("Couldn't cancel subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
         }
     }
 
@@ -161,7 +194,7 @@ public class UserResource {
     @Path("/self/pushsubscriptions/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response deletePushSubscription(@Context SecurityContext securityContext, @PathParam("id") String id) {
-        userDAO.deletePremiumSubscriptionId(Long.valueOf(id));
+        userDAO.deletePushSubscription(Long.valueOf(id));
         return Response.ok().build();
     }
 
@@ -198,11 +231,12 @@ public class UserResource {
         CustomerRequest request = new CustomerRequest()
             .id(userId)
             .paymentMethodNonce(paymentOnce);
+
         Result<Customer> result = gateway.customer().create(request);
         if (result.isSuccess()) {
             return result.getTarget().getPaymentMethods().get(0).getToken();
         } else {
-            throw new RuntimeException("Couldn't create braintree user :(");
+            throw new RuntimeException("Couldn't create braintree user in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
         }
     }
 
@@ -216,7 +250,7 @@ public class UserResource {
         if (result.isSuccess()) {
             return result.getTarget().getToken();
         } else {
-            throw new RuntimeException("Couldn't create braintree payment :(");
+            throw new RuntimeException("Couldn't create braintree payment " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
         }
     }
 }

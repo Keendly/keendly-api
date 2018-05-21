@@ -213,27 +213,6 @@ public class UserDaoTest {
     }
 
     @Test
-    public void when_deletePremiumSubscriptionId_subscriptionIdRemoved() {
-        // given
-        execute(
-            sequenceOf(
-                deleteAllFrom("pushsubscription", "keendlyuser"),
-                insertInto("keendlyuser")
-                    .columns("id", "provider", "provider_id", "premium_subscription_id")
-                    .values(1L, "INOREADER", "123", "9876")
-                    .build()
-            )
-        );
-
-        // when
-        userDao.deletePremiumSubscriptionId(1L);
-
-        // then
-        User user = userDao.findById(1L);
-        assertNull(user.getPremiumSubscriptionId());
-    }
-
-    @Test
     public void when_addPushSubscription_subscriptionAdded() {
         // given
         execute(

@@ -21,7 +21,7 @@ public class User {
     private String accessToken;
     private String refreshToken;
     private String premiumSubscriptionId;
-    private boolean isPremium;
+    private Premium premium;
     private List<PushSubscription> pushSubscriptions;
-    private boolean forcePremium;
+    private Boolean forcePremium;
 }

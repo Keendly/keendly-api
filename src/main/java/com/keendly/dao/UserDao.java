@@ -173,12 +173,4 @@ public class UserDao {
                 .execute();
         }
     }
-
-    public void deletePremiumSubscriptionId(Long id) {
-        try (Handle handle  = getDB(environment).open()) {
-            handle.createStatement("update keendlyuser set premium_subscription_id = null where id = :userId")
-                .bind("userId", id)
-                .execute();
-        }
-    }
 }
