@@ -4,33 +4,23 @@ import static com.keendly.dao.Helpers.*;
 import static com.ninja_squad.dbsetup.Operations.*;
 import static org.junit.Assert.*;
 
-import com.keendly.adaptor.inoreader.InoreaderAdaptor;
-import com.keendly.adaptor.model.ExternalFeed;
-import com.keendly.adaptor.model.auth.Token;
 import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
-import com.keendly.model.Feed;
 import com.keendly.model.Subscription;
-import com.keendly.model.SubscriptionItem;
-import com.keendly.model.User;
 import com.keendly.utils.DbUtils;
 import com.ninja_squad.dbsetup.operation.Operation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class DeliveryDaoTest {
 
@@ -449,70 +439,5 @@ public class DeliveryDaoTest {
         Delivery delivery = deliveryDao.findById(2L);
         assertNotNull(delivery.getError());
         assertNull(delivery.getDeliveryDate());
-    }
-
-    @Test
-    @Ignore("debug")
-    public void test(){
-        DbUtils.Environment e = DbUtils.Environment.builder()
-            .url("pupaurl")
-            .password("cyce")
-            .user("atam")
-            .build();
-
-        SubscriptionDao subscriptionDao  = new SubscriptionDao(e);
-        UserDao userDao = new UserDao(e);
-        User user = userDao.findById(2L);
-
-        Token token = Token.builder()
-            .accessToken(user.getAccessToken())
-            .refreshToken(user.getRefreshToken())
-            .build();
-
-        InoreaderAdaptor inoreaderAdaptor = new InoreaderAdaptor(token);
-
-        DeliveryDao deliveryDao = new DeliveryDao(e);
-
-        long start = System.currentTimeMillis();
-        List<ExternalFeed> subscribedFeeds = inoreaderAdaptor.getFeeds();
-        System.out.println(System.currentTimeMillis() - start);
-        List<SubscriptionItem> subscriptionItems = subscriptionDao.getSubscriptionItems(2L);
-        Map<String,Delivery> lastDeliveries = deliveryDao.getLastDeliveries(2L,
-            subscribedFeeds.stream().map(ExternalFeed::getFeedId).collect(Collectors.toList()));
-
-        System.out.println(System.currentTimeMillis() - start);
-        List<Feed> feeds = new ArrayList<>();
-        for (ExternalFeed subscribedFeed : subscribedFeeds) {
-            List<SubscriptionItem> feedSubscriptionItems = subscriptionItems.stream()
-                .filter(s -> s.getFeedId().equals(subscribedFeed.getFeedId()))
-                .collect(Collectors.toList());
-
-            List<Subscription> subscriptions = new ArrayList<>();
-            if (!feedSubscriptionItems.isEmpty()){
-                for (SubscriptionItem feedSubscriptionItem : feedSubscriptionItems){
-                    Subscription subscription = Subscription.builder()
-                        .id(feedSubscriptionItem.getSubscription().getId())
-                        .time(feedSubscriptionItem.getSubscription().getTime())
-                        .timezone(feedSubscriptionItem.getSubscription().getTimezone())
-                        .build();
-                    subscriptions.add(subscription);
-                }
-            }
-
-            Delivery lastDelivery = lastDeliveries.get(subscribedFeed.getFeedId());
-            Feed feed = Feed.builder()
-                .title(subscribedFeed.getTitle())
-                .feedId(subscribedFeed.getFeedId())
-                .subscriptions(subscriptions)
-                .lastDelivery(lastDelivery)
-                .build();
-
-            feeds.add(feed);
-
-            // TODO refresh token after implement userDAO
-        }
-
-        System.out.println(System.currentTimeMillis() - start);
-        String a = "a";
     }
 }
