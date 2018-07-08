@@ -1,5 +1,7 @@
 package com.keendly.api;
 
+import static com.keendly.premium.PremiumUtils.*;
+
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
@@ -21,11 +23,13 @@ import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
 import com.keendly.model.Subscription;
 import com.keendly.model.User;
+import com.keendly.perun.PerunRequest;
+import com.keendly.perun.PerunService;
+import com.keendly.push_notifier.PushNotifierRequest;
+import com.keendly.push_notifier.PushNotifierService;
 import com.keendly.states.DeliveryRequest;
 import com.keendly.states.Mapper;
 import com.keendly.states.S3Object;
-import com.keendly.perun.PerunRequest;
-import com.keendly.perun.PerunService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +66,7 @@ public class DeliveryResource {
     private AmazonS3 amazonS3Client;
     private AWSStepFunctions awsStepFunctionsClient;
     private PerunService perunService;
+    private PushNotifierService pushNotifierService;
 
     public DeliveryResource() {
         this.deliveryDAO = new DeliveryDao();
@@ -71,15 +76,20 @@ public class DeliveryResource {
         this.perunService = LambdaInvokerFactory.builder()
             .lambdaClient(AWSLambdaClientBuilder.defaultClient())
             .build(PerunService.class);
+        this.pushNotifierService = LambdaInvokerFactory.builder()
+            .lambdaClient(AWSLambdaClientBuilder.defaultClient())
+            .build(PushNotifierService.class);
     }
     
     public DeliveryResource(DeliveryDao deliveryDao, UserDao userDao, 
-        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions, PerunService perunService) {
+        AmazonS3 amazonS3, AWSStepFunctions awsStepFunctions, PerunService perunService,
+        PushNotifierService pushNotifierService) {
         this.deliveryDAO = deliveryDao;
         this.userDAO = userDao;
         this.amazonS3Client = amazonS3;
         this.awsStepFunctionsClient = awsStepFunctions;
         this.perunService = perunService;
+        this.pushNotifierService = pushNotifierService;
     }
     
     private AWSStepFunctions getStepFunctionsClient() {
@@ -137,10 +147,18 @@ public class DeliveryResource {
                 .build();
         }
 
+        // check if user has active premium
+        if (!delivery.getManual() && !getPremiumStatus(user).isActive()) {
+            LOG.error("Scheduled deliveries are available for Premium users");
+            return Response.status(Response.Status.PAYMENT_REQUIRED)
+                .entity(Error.NO_PREMIUM.asEntity())
+                .build();
+        }
+
         // fetch unread articles
         Adaptor adaptor = AdaptorFactory.getInstance(user);
         Map<String, List<FeedEntry>> unread =
-            adaptor.getUnread(delivery.getItems().stream().map(item -> item.getFeedId()).collect(Collectors.toList()));
+            adaptor.getUnread(delivery.getItems().stream().map(DeliveryItem::getFeedId).collect(Collectors.toList()));
         LOG.debug("Fetched {} unread articles for {} feeds", 
             unread.values().stream().flatMap(List::stream).collect(Collectors.toList()), unread.size());
         
@@ -179,6 +197,15 @@ public class DeliveryResource {
             deliveryDAO.createDelivery(toInsert, userId);
 
             if (user.getNotifyNoArticles()) {
+                // TODO: move outside above if, config is about email
+                // try to send push notification
+                LOG.debug("Sending push notification about no unread articles");
+                pushNotifierService.sendNotification(PushNotifierRequest.builder()
+                    .userId(userId)
+                    .title("Nothing to deliver this time")
+                    .body("We couldn't find any unread articles in any of the scheduled feeds")
+                    .build());
+
                 LOG.debug("Notifications on no articles enabled, sending email to {}", user.getEmail());
                 PerunRequest perunRequest = PerunRequest.builder()
                     .sender("contact@keendly.com")

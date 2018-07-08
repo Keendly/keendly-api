@@ -21,6 +21,7 @@ public class User {
     private String accessToken;
     private String refreshToken;
     private String premiumSubscriptionId;
+    private String stripeCustomerId;
     private Premium premium;
     private List<PushSubscription> pushSubscriptions;
     private Boolean forcePremium;

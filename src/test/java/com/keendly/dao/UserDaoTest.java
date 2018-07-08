@@ -265,4 +265,27 @@ public class UserDaoTest {
         // then
         assertTrue(userDao.findById(1L).getPushSubscriptions().isEmpty());
     }
+
+    @Test
+    public void when_setStripeCustomerId_customerIdSet() {
+        String customerId = "cus_CywxfWKDo5qSuN";
+
+        // given
+        execute(
+            sequenceOf(
+                deleteAllFrom("pushsubscription", "keendlyuser"),
+                insertInto("keendlyuser")
+                    .columns("id", "provider", "provider_id")
+                    .values(1L, "INOREADER", "123")
+                    .build()
+            )
+        );
+
+        // when
+        userDao.setStripeCustomerId(1L, customerId);
+
+        // then
+        User user = userDao.findById(1L);
+        assertEquals(customerId, user.getStripeCustomerId());
+    }
 }

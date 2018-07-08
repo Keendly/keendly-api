@@ -14,6 +14,10 @@ import com.keendly.adaptor.model.ExternalUser;
 import com.keendly.adaptor.model.FeedEntry;
 import com.keendly.adaptor.model.auth.Credentials;
 import com.keendly.adaptor.model.auth.Token;
+import com.keendly.dao.DeliveryDao;
+import com.keendly.model.Delivery;
+import com.keendly.model.DeliveryItem;
+import com.keendly.utils.DbUtils;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.minidev.json.JSONArray;
@@ -23,6 +27,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -549,11 +554,13 @@ public class InoreaderAdaptorTest {
         // then
         assertTrue(success);
 
-        verify(getRequestedFor(urlPathEqualTo("/mark-all-as-read")).withQueryParam("s", equalTo(FEED_ID1))
+        verify(getRequestedFor(urlPathEqualTo("/mark-all-as-read"))
+            .withQueryParam("s", equalTo(FEED_ID1))
             .withQueryParam("ts", equalTo(Long.toString(timestamp * 1000)))
             .withHeader("Authorization", equalTo("Bearer " + ACCESS_TOKEN)));
 
-        verify(getRequestedFor(urlPathEqualTo("/mark-all-as-read")).withQueryParam("s", equalTo(FEED_ID2))
+        verify(getRequestedFor(urlPathEqualTo("/mark-all-as-read"))
+            .withQueryParam("s", equalTo(FEED_ID2))
             .withQueryParam("ts", equalTo(Long.toString(timestamp * 1000)))
             .withHeader("Authorization", equalTo("Bearer " + ACCESS_TOKEN)));
     }
@@ -810,5 +817,46 @@ public class InoreaderAdaptorTest {
             .refreshToken(refreshToken)
             .build();
         return new InoreaderAdaptor(token, config());
+    }
+
+
+    @Test
+    @Ignore("elo")
+    public void test() {
+        Map<InoreaderAdaptor.InoreaderParam, String> config = new HashMap<>();
+        config.put(InoreaderAdaptor.InoreaderParam.URL, "https://www.inoreader.com/reader/api/0");
+        config.put(InoreaderAdaptor.InoreaderParam.AUTH_URL, "https://www.inoreader.com/oauth2/token");
+        config.put(InoreaderAdaptor.InoreaderParam.CLIENT_ID, "1000001083");
+        config.put(InoreaderAdaptor.InoreaderParam.CLIENT_SECRET, "LiFY_ZeWCm70HT62kN17wnQlki3BjJtX");
+        config.put(InoreaderAdaptor.InoreaderParam.REDIRECT_URL, "https://app.keendly.com/inoreaderCallback");
+
+        Token token = Token.builder()
+            .accessToken("59e89519152c8e44a4a7f3494202379c24354a6e")
+            .refreshToken("9dc176bc35c7a5b7300e8831c7cc05fd0fff091d")
+            .build();
+
+        InoreaderAdaptor adaptor = new InoreaderAdaptor(token, config);
+
+        List<ExternalFeed> feeds = adaptor.getFeeds();
+
+        DbUtils.Environment environment = DbUtils.Environment.builder()
+            .url("jdbc:postgresql://keendly.cw2niifxhbyl.eu-west-1.rds.amazonaws.com:5432/keendly")
+            .password("jA5iyUWsjqqz_viIc7n6")
+            .user("keendly")
+            .build();
+
+        DeliveryDao deliveryDAO = new DeliveryDao(environment);
+
+        List<String> feedsToMarkAsRead = new ArrayList<>();
+        Delivery stored = deliveryDAO.findById(593189l);
+        for (DeliveryItem item : stored.getItems()) {
+            if (item.getMarkAsRead()) {
+                feedsToMarkAsRead.add(item.getFeedId());
+            }
+        }
+
+        if (!feedsToMarkAsRead.isEmpty()) {
+            adaptor.markFeedRead(feedsToMarkAsRead, 1523601522251l);
+        }
     }
 }

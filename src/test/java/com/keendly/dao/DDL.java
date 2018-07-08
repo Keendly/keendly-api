@@ -17,6 +17,7 @@ public enum DDL {
         + "notify_no_articles BOOLEAN, "
         + "premium_subscription_id CHARACTER VARYING(100), "
         + "force_premium BOOLEAN DEFAULT false, "
+        + "stripe_customer_id CHARACTER VARYING(100), "
         + "PRIMARY KEY (id), "
         + "CONSTRAINT uk_6vhj1cwggrr6dy1sxskrbt0y4 UNIQUE (provider, provider_id));"),
 

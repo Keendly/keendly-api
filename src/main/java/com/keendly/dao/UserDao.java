@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class UserDao {
 
-    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token, premium_subscription_id, force_premium from keendlyuser";
+    private static String USER_SELECT = "select id, provider, provider_id, email, delivery_email, delivery_sender, notify_no_articles, access_token, refresh_token, premium_subscription_id, force_premium, stripe_customer_id from keendlyuser";
 
     private Environment environment;
 
@@ -71,6 +71,7 @@ public class UserDao {
             .premiumSubscriptionId((String) map.get("premium_subscription_id"))
             .pushSubscriptions(pushSubscriptions)
             .forcePremium((Boolean) map.get("force_premium"))
+            .stripeCustomerId((String) map.get("stripe_customer_id"))
             .build();
     }
 
@@ -170,6 +171,15 @@ public class UserDao {
             handle.createStatement("update keendlyuser set premium_subscription_id = :subscriptionId where id = :userId")
                 .bind("userId", id)
                 .bind("subscriptionId", subscriptionId)
+                .execute();
+        }
+    }
+
+    public void setStripeCustomerId(Long id, String stripeCustomerId) {
+        try (Handle handle  = getDB(environment).open()) {
+            handle.createStatement("update keendlyuser set stripe_customer_id = :stripeCustomerId where id = :userId")
+                .bind("userId", id)
+                .bind("stripeCustomerId", stripeCustomerId)
                 .execute();
         }
     }

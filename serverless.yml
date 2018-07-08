@@ -77,6 +77,8 @@ functions:
       FEEDLY_CLIENT_ID: ${env:FEEDLY_CLIENT_ID}
       FEEDLY_CLIENT_SECRET: ${env:FEEDLY_CLIENT_SECRET}
       FEEDLY_REDIRECT_URI: ${env:FEEDLY_REDIRECT_URI}
+      STRIPE_KEY: ${env:STRIPE_KEY}
+      STRIPE_PLAN_ID: ${env:STRIPE_PLAN_ID}
     events:
       - http:
           path: /login

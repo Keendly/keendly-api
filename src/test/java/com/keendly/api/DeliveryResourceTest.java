@@ -19,11 +19,15 @@ import com.keendly.dao.DeliveryDao;
 import com.keendly.dao.UserDao;
 import com.keendly.model.Delivery;
 import com.keendly.model.DeliveryItem;
+import com.keendly.model.Premium;
 import com.keendly.model.Provider;
 import com.keendly.model.Subscription;
 import com.keendly.model.User;
 import com.keendly.perun.PerunRequest;
 import com.keendly.perun.PerunService;
+import com.keendly.premium.PremiumUtils;
+import com.keendly.push_notifier.PushNotifierRequest;
+import com.keendly.push_notifier.PushNotifierService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(AdaptorFactory.class)
+@PrepareForTest({AdaptorFactory.class, PremiumUtils.class})
 public class DeliveryResourceTest {
 
     private static Long USER_ID = 1L;
@@ -57,11 +61,12 @@ public class DeliveryResourceTest {
     private AmazonS3 amazonS3 = mock(AmazonS3.class);
     private AWSStepFunctions awsStepFunctions = mock(AWSStepFunctions.class);
     private PerunService perunService = mock(PerunService.class);
+    private PushNotifierService pushNotifierService = mock(PushNotifierService.class);
     
     private Adaptor adaptor = mock(Adaptor.class);
     
     private DeliveryResource deliveryResource = 
-        new DeliveryResource(deliveryDao, userDao, amazonS3, awsStepFunctions, perunService);
+        new DeliveryResource(deliveryDao, userDao, amazonS3, awsStepFunctions, perunService, pushNotifierService);
     
     @Before
     public void setUp() {
@@ -71,6 +76,12 @@ public class DeliveryResourceTest {
 
         PowerMockito.mockStatic(AdaptorFactory.class);
         PowerMockito.when(AdaptorFactory.getInstance(any(User.class))).thenReturn(adaptor);
+
+        PowerMockito.mockStatic(PremiumUtils.class);
+        PowerMockito.when(PremiumUtils.getPremiumStatus(any(User.class)))
+            .thenReturn(Premium.builder()
+                .active(true)
+                .build());
     }
     
     @Test
@@ -294,11 +305,73 @@ public class DeliveryResourceTest {
 
         // then
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        ArgumentCaptor<PerunRequest> velesRequestArgumentCaptor = ArgumentCaptor.forClass(PerunRequest.class);
-        verify(perunService).sendEmail(velesRequestArgumentCaptor.capture());
-        assertEquals("user@mail.com", velesRequestArgumentCaptor.getValue().getRecipient());
+        ArgumentCaptor<PerunRequest> perunRequestArgumentCaptor = ArgumentCaptor.forClass(PerunRequest.class);
+        verify(perunService).sendEmail(perunRequestArgumentCaptor.capture());
+        assertEquals("user@mail.com", perunRequestArgumentCaptor.getValue().getRecipient());
     }
-    
+
+    @Test
+    public void given_noArticlesAndNotManualAndNotifyNoArticles_when_createDelivery_then_sendPushNotification() {
+        // given
+        when(userDao.findById(eq(USER_ID))).thenReturn(
+            User.builder()
+                .email("user@mail.com")
+                .deliveryEmail("blabla@kindle.com")
+                .deliverySender("blabla@keendly.com")
+                .provider(Provider.INOREADER)
+                .notifyNoArticles(true)
+                .build());
+
+        Map<String, List<FeedEntry>> unread = new HashMap<>();
+        unread.put("feed/http://brodatyblog.pl/feed/atom/", Collections.emptyList());
+        when(adaptor.getUnread(any())).thenReturn(unread);
+
+        // when
+        DeliveryItem feed = DeliveryItem.builder()
+            .feedId("feed/http://brodatyblog.pl/feed/atom/")
+            .build();
+        Response response = createDelivery(Delivery.builder()
+            .items(Arrays.asList(feed))
+            .subscription(Subscription.builder().id(1L).build())
+            .manual(false)
+            .build());
+
+        // then
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        ArgumentCaptor<PushNotifierRequest> pushRequestArgumentCaptor = ArgumentCaptor.forClass(PushNotifierRequest.class);
+        verify(pushNotifierService).sendNotification(pushRequestArgumentCaptor.capture());
+        assertEquals(USER_ID, pushRequestArgumentCaptor.getValue().getUserId());
+    }
+
+    @Test
+    public void given_notManualDeliverAndNotPremiumUser_when_createDelivery_then_returnError() {
+        // given
+        PowerMockito.when(PremiumUtils.getPremiumStatus(any(User.class)))
+            .thenReturn(Premium.builder()
+                .active(false)
+                .build());
+
+        when(userDao.findById(eq(USER_ID))).thenReturn(
+            User.builder()
+                .deliveryEmail("blabla@kindle.com")
+                .deliverySender("blabla@keendly.com")
+                .provider(Provider.INOREADER)
+                .build());
+
+        // when
+        DeliveryItem feed = DeliveryItem.builder()
+            .feedId("feed/http://brodatyblog.pl/feed/atom/")
+            .build();
+        Response response = createDelivery(Delivery.builder()
+            .items(Arrays.asList(feed))
+            .manual(false)
+            .build());
+
+        // then
+        assertEquals(Response.Status.PAYMENT_REQUIRED.getStatusCode(), response.getStatus());
+        assertEquals("NO_PREMIUM", ((Map) response.getEntity()).get("code"));
+    }
+
     private Response createDelivery(Delivery delivery) {
         return deliveryResource.createDelivery(securityContext, delivery);
     }

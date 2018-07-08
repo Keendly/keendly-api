@@ -9,7 +9,8 @@ public enum Error {
     TOO_MANY_ITEMS("Max number of feeds in single delivery: %d"),
     WRONG_EMAIL("Email address incorrect, allowed domains: %s"),
     NO_ARTICLES("No unread articles found"),
-    TOO_MANY_SUBSCRIPTIONS("Max number of scheduled deliveries: %d");
+    TOO_MANY_SUBSCRIPTIONS("Max number of scheduled deliveries: %d"),
+    NO_PREMIUM("Scheduled deliveries are available for Premium users");
 
     private String message;
 

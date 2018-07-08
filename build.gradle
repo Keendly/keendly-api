@@ -24,7 +24,8 @@ dependencies {
         'postgresql:postgresql:9.1-901.jdbc4',
         'org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.25.1',
         'com.braintreepayments.gateway:braintree-java:2.73.0',
-        'org.jsoup:jsoup:1.11.2'
+        'org.jsoup:jsoup:1.11.2',
+        'com.stripe:stripe-java:5.36.0'
     )
 
     compileOnly "org.projectlombok:lombok:1.16.16"

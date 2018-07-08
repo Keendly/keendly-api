@@ -1,5 +1,7 @@
 package com.keendly.api;
 
+import static com.keendly.premium.PremiumUtils.getPremiumStatus;
+
 import com.keendly.dao.SubscriptionDao;
 import com.keendly.dao.UserDao;
 import com.keendly.model.Subscription;
@@ -68,6 +70,14 @@ public class SubscriptionResource {
             LOG.error("Delivery email not configured for user {}", userId);
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(Error.DELIVERY_EMAIL_NOT_CONFIGURED.asEntity())
+                .build();
+        }
+
+        // check if user has active premium
+        if (!getPremiumStatus(user).isActive()) {
+            LOG.error("Scheduled deliveries are available for Premium users");
+            return Response.status(Response.Status.PAYMENT_REQUIRED)
+                .entity(Error.NO_PREMIUM.asEntity())
                 .build();
         }
 

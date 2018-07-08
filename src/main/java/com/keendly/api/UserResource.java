@@ -1,5 +1,6 @@
 package com.keendly.api;
 
+import static com.keendly.premium.PremiumUtils.*;
 import static com.keendly.utils.ConfigUtils.*;
 
 import com.amazonaws.util.StringUtils;
@@ -11,11 +12,8 @@ import com.braintreegateway.Environment;
 import com.braintreegateway.PaymentMethod;
 import com.braintreegateway.PaymentMethodRequest;
 import com.braintreegateway.Result;
-import com.braintreegateway.Subscription;
-import com.braintreegateway.SubscriptionRequest;
 import com.braintreegateway.exceptions.NotFoundException;
 import com.keendly.dao.UserDao;
-import com.keendly.model.Premium;
 import com.keendly.model.PremiumRequest;
 import com.keendly.model.PushSubscription;
 import com.keendly.model.User;
@@ -31,7 +29,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.Date;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/users")
 public class UserResource {
@@ -60,46 +60,12 @@ public class UserResource {
                 .deliveryEmail(user.getDeliveryEmail())
                 .deliverySender(user.getDeliverySender())
                 .notifyNoArticles(user.getNotifyNoArticles())
-                .premium(mapPremium(user))
+                .premium(getPremiumStatus(user))
                 .pushSubscriptions(user.getPushSubscriptions())
                 .build())
             .build();
     }
 
-    private Premium mapPremium(User user) {
-        Premium.PremiumBuilder builder = Premium.builder()
-            .active(false);
-        if (user.getForcePremium() != null && user.getForcePremium()) {
-            builder.active(true).cancellable(false);
-            return builder.build();
-        }
-        if (user.getPremiumSubscriptionId() != null) {
-            Subscription subscription;
-            try {
-                 subscription = gateway.subscription().find(user.getPremiumSubscriptionId());
-            } catch (Exception e) {
-                return builder.active(false).build();
-            }
-            if (subscription.getStatus() == Subscription.Status.ACTIVE) {
-                builder.active(true).cancellable(true);
-            }
-            if (subscription.getStatus() == Subscription.Status.CANCELED) {
-                builder.cancellable(false);
-                if (subscription.getPaidThroughDate() != null &&
-                    subscription.getPaidThroughDate().getTime().after(new Date())) {
-                    builder.active(true);
-                    builder.expires(subscription.getPaidThroughDate().getTime());
-                }
-                // still trial
-                if (subscription.getFirstBillingDate().getTime().after(new Date())) {
-                    builder.active(true);
-                    builder.expires(subscription.getFirstBillingDate().getTime());
-                }
-            }
-        }
-        return builder.build();
-    }
-    
     @PATCH
     @Path("/self")
     @Consumes({ MediaType.APPLICATION_JSON })
@@ -142,39 +108,84 @@ public class UserResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response goPremium(@Context SecurityContext securityContext, PremiumRequest request) {
         String userId = securityContext.getUserPrincipal().getName();
-        String paymentToken;
-        if (!braintreeCustomerExists(userId)) {
-            paymentToken = createBraintreeCustomerWithPayment(userId, request.getNonce());
+        User user = userDAO.findById(Long.parseLong(userId));
+        String customerId;
+        if (user.getStripeCustomerId() != null) {
+            customerId = user.getStripeCustomerId();
         } else {
-            paymentToken = createPayment(userId, request.getNonce());
+            try {
+                com.stripe.model.Customer customer = com.stripe.model.Customer.create(Collections.emptyMap());
+                customerId = customer.getId();
+                userDAO.setStripeCustomerId(Long.valueOf(userId), customerId);
+            } catch (Exception e) {
+                throw new RuntimeException("Couldn't create stripe user for user " + userId, e);
+            }
         }
 
-        SubscriptionRequest subscriptionRequest = new SubscriptionRequest()
-            .paymentMethodToken(paymentToken)
-            .planId(request.getPlainId());
+        Map<String, Object> item = new HashMap<>();
+        item.put("plan", parameter("STRIPE_PLAN_ID"));
 
-        Result<Subscription> result = gateway.subscription().create(subscriptionRequest);
+        Map<String, Object> items = new HashMap<>();
+        items.put("0", item);
 
-        if (result.isSuccess()) {
-            String subscriptionId = result.getTarget().getId();
-            userDAO.setPremiumSubscriptionId(Long.parseLong(userId), subscriptionId);
-        } else {
-            new RuntimeException("Couldn't create subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
+        Map<String, Object> params = new HashMap<>();
+        params.put("customer", customerId);
+        params.put("items", items);
+        params.put("source", request.getTokenId());
+        params.put("trial_from_plan", Boolean.TRUE);
+
+        try {
+            com.stripe.model.Subscription subscription = com.stripe.model.Subscription.create(params);
+            userDAO.setPremiumSubscriptionId(Long.valueOf(userId), subscription.getId());
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't create stripe subscription for user " + userId, e);
         }
         return Response.ok().build();
+//        } else {
+//            String paymentToken;
+//            if (!braintreeCustomerExists(userId)) {
+//                paymentToken = createBraintreeCustomerWithPayment(userId, request.getNonce());
+//            } else {
+//                paymentToken = createPayment(userId, request.getNonce());
+//            }
+//
+//            SubscriptionRequest subscriptionRequest = new SubscriptionRequest()
+//                .paymentMethodToken(paymentToken)
+//                .planId(request.getPlainId());
+//
+//            Result<Subscription> result = gateway.subscription().create(subscriptionRequest);
+//
+//            if (result.isSuccess()) {
+//                String subscriptionId = result.getTarget().getId();
+//                userDAO.setPremiumSubscriptionId(Long.parseLong(userId), subscriptionId);
+//            } else {
+//                throw new RuntimeException("Couldn't create subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
+//            }
+//            return Response.ok().build();
+//        }
     }
+
 
     @DELETE
     @Path("/self/premium")
     public Response deletePremium(@Context SecurityContext securityContext) {
         Long userId = Long.valueOf(securityContext.getUserPrincipal().getName());
         String subscriptionId = userDAO.findById(userId).getPremiumSubscriptionId();
-        Result<Subscription> result = gateway.subscription().cancel(subscriptionId);
-        if (result.isSuccess()) {
+        try {
+            com.stripe.model.Subscription sub = com.stripe.model.Subscription.retrieve(subscriptionId);
+            Map<String, Object> params = new HashMap<>();
+            params.put("at_period_end", Boolean.TRUE);
+            sub.cancel(params);
             return Response.ok().build();
-        } else {
-            throw new RuntimeException("Couldn't cancel subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't cancel subscription " + subscriptionId + " for user " + userId, e);
         }
+        //        Result<Subscription> result = gateway.subscription().cancel(subscriptionId);
+//        if (result.isSuccess()) {
+//            return Response.ok().build();
+//        } else {
+//            throw new RuntimeException("Couldn't cancel subscription in " + gateway.getConfiguration().getEnvironment() + ", reason: " + result.getMessage());
+//        }
     }
 
     @POST
